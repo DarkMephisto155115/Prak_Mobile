@@ -4,6 +4,8 @@ import 'package:get/get.dart';
 import 'package:terra_brain/app/routes/app_pages.dart';
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(

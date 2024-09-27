@@ -13,18 +13,18 @@ class AppPages {
   static final routes = [
     GetPage(
       name: Routes.HOME,
-      page: () => HomePage(),
+      page: () => const HomePage(),
     ),
     GetPage(
       name: Routes.NEW_PAGE,
-      page: () => NewPage(),
+      page: () => const NewPage(),
       binding: BindingsBuilder(() {
         Get.lazyPut<NewPageController>(() => NewPageController());
       }),
     ),
     GetPage(
       name: Routes.IMAGE_PAGE, // Add route for the image page
-      page: () => ImagePage(),
+      page: () => const ImagePage(),
     ),
   ];
 }
