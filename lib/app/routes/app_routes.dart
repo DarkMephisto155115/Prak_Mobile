@@ -1,16 +1,10 @@
+// lib/app/routes/app_routes.dart
 part of 'app_pages.dart';
-// DO NOT EDIT. This is code generated via package:get_cli/get_cli.dart
 
 abstract class Routes {
-  Routes._();
-  static const HOME = _Paths.HOME;
+  static const HOME = '/';
   static const NEW_PAGE = '/new_page';
   static const IMAGE_PAGE = '/image_page';
+  static const REGISTRATION = '/registration';
+  static const LOGIN = '/login';
 }
-
-abstract class _Paths {
-  _Paths._();
-  static const HOME = '/home';
-}
-
-
