@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../app/routes/app_pages.dart';
 import '../controllers/LoginController.dart';
 
 class LoginPage extends StatelessWidget {
@@ -56,9 +57,20 @@ class LoginPage extends StatelessWidget {
             SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
-                controller.login();
+                // controller.login();
+                Get.toNamed(Routes.HOME);
               },
               child: Text('Log in'),
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.black, backgroundColor: Colors.white, // Warna teks button
+              ),
+            ),
+            SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                Get.toNamed(Routes.REGISTRATION);
+              },
+              child: Text('Register'),
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.black, backgroundColor: Colors.white, // Warna teks button
               ),
