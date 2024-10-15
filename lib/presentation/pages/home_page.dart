@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:webview_flutter/webview_flutter.dart';
 
 import '../../app/routes/app_pages.dart';
 
@@ -20,7 +21,7 @@ class HOME extends StatelessWidget {
   }
 }
 
-class HomePage extends StatelessWidget {
+class HomePage extends GetView {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -60,7 +61,6 @@ class HomePage extends StatelessWidget {
             CategoryList(),
 
             // Bagian cerita rekomendasi
-
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Text(
@@ -88,9 +88,8 @@ class HomePage extends StatelessWidget {
           ),
         ],
         onTap: (index) {
-          // Aksi ketika tab ditekan
-          if (index ==2){
-            Get.toNamed(Routes.PROFILE);
+          if(index == 1){
+            Get.toNamed(Routes.API);
           }
         },
       ),
@@ -202,17 +201,24 @@ class CategoryList extends StatelessWidget {
   }
 }
 
-class RecommendedStories extends StatelessWidget {
+class RecommendedStories extends GetView {
   final List<String> recommended = [
-    'Recommended 1',
-    'Recommended 2',
-    'Recommended 3',
+    'Stuck With Mr. Billionaire',
+    'Hell University',
+    'A Brilliant Plan',
+  ];
+
+  final List<String> urls = [
+    'https://www.wattpad.com/story/243832194-stuck-with-mr-billionaire',
+    'https://www.wattpad.com/story/157780928-hell-university',
+    'https://www.wattpad.com/story/65808245-a-brilliant-plan',
   ];
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: recommended.map((story) {
+        int index = recommended.indexOf(story);
         return ListTile(
           leading: Image.network(
             'https://via.placeholder.com/50',
@@ -220,8 +226,40 @@ class RecommendedStories extends StatelessWidget {
           ),
           title: Text(story),
           subtitle: Text('Author Name'),
+          onTap: () {
+            Get.to(WebViewScreen(url: urls[index]));
+          },
         );
       }).toList(),
+    );
+  }
+}
+
+class WebViewScreen extends StatefulWidget {
+  final String url;
+
+  WebViewScreen({required this.url});
+
+  @override
+  _WebViewScreenState createState() => _WebViewScreenState();
+}
+
+class _WebViewScreenState extends State<WebViewScreen> {
+  late final WebViewController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = WebViewController()..loadRequest(Uri.parse(widget.url));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('WebView'),
+      ),
+      body: WebViewWidget(controller: _controller),
     );
   }
 }

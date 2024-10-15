@@ -1,8 +1,8 @@
 // lib/app/routes/app_pages.dart
 import 'package:get/get.dart';
+import 'package:terra_brain/presentation/pages/API_page.dart';
 import 'package:terra_brain/presentation/pages/home_page.dart';
 import 'package:terra_brain/presentation/pages/profile_page.dart';
-import 'package:terra_brain/presentation/controllers/profile_controller.dart';
 import 'package:terra_brain/presentation/pages/image_page.dart';
 import 'package:terra_brain/presentation/pages/registration_page.dart';
 
@@ -33,6 +33,10 @@ class AppPages {
     GetPage(
       name: Routes.LOGIN,
       page: () => LoginPage(),
+    ),
+    GetPage(
+      name: Routes.API,
+      page: () => BestSellerListScreen(),
     ),
   ];
 }

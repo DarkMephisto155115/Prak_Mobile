@@ -7,4 +7,5 @@ abstract class Routes {
   static const IMAGE_PAGE = '/image_page';
   static const REGISTRATION = '/registration';
   static const LOGIN = '/login';
+  static const API = '/api';
 }
