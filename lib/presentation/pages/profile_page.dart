@@ -3,8 +3,7 @@ import 'package:get/get.dart';
 import 'dart:io';
 import '../controllers/profile_controller.dart';
 
-class ProfileScreen extends StatelessWidget {
-  final ProfileController controller = Get.put(ProfileController());
+class ProfileScreen extends GetView<ProfileController> {
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +30,7 @@ class ProfileScreen extends StatelessWidget {
             // Profile image and username
             GestureDetector(
               onTap: () {
-                controller.pickImage();  // Trigger image picking
+                controller.pickImage();
               },
               child: Obx(() {
                 return CircleAvatar(

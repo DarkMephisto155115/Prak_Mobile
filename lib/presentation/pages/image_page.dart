@@ -1,7 +1,8 @@
 // lib/presentation/pages/image_page.dart
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
-class ImagePage extends StatelessWidget {
+class ImagePage extends GetView {
   const ImagePage({super.key});
 
   @override
@@ -20,14 +21,14 @@ class ImagePage extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             Image.asset(
-              'assets/images/my_image.jpg', // Path to your local image
+              'assets/images/my_image.jpg',
               height: 150,
               width: 150,
             ),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Go back to the previous page
+                Navigator.of(context).pop();
               },
               child: const Text('Kembali'),
             ),

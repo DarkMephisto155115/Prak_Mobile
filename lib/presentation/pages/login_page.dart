@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../app/routes/app_pages.dart';
+import '../routes/app_pages.dart';
 import '../controllers/LoginController.dart';
 
-class LoginPage extends StatelessWidget {
-  final LoginController controller = Get.put(LoginController());
-
+class LoginPage extends GetView<LoginController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -62,7 +60,7 @@ class LoginPage extends StatelessWidget {
               },
               child: Text('Log in'),
               style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.black, backgroundColor: Colors.white, // Warna teks button
+                foregroundColor: Colors.black, backgroundColor: Colors.white,
               ),
             ),
             SizedBox(height: 16),
@@ -72,7 +70,7 @@ class LoginPage extends StatelessWidget {
               },
               child: Text('Register'),
               style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.black, backgroundColor: Colors.white, // Warna teks button
+                foregroundColor: Colors.black, backgroundColor: Colors.white,
               ),
             ),
             SizedBox(height: 16),

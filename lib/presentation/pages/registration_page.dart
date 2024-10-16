@@ -10,8 +10,7 @@ class RegistrationController extends GetxController {
   var pronouns = ''.obs;
 }
 
-class RegistrationPage extends StatelessWidget {
-  final RegistrationController controller = Get.put(RegistrationController());
+class RegistrationPage extends GetView<RegistrationController> {
 
   @override
   Widget build(BuildContext context) {

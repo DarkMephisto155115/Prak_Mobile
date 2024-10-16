@@ -8,17 +8,17 @@ class ProfileController extends GetxController {
 
   final ImagePicker _picker = ImagePicker();
 
-  // Increment coins method
+
   void incrementCoins() {
     coins++;
   }
 
-  // Increment followers method
+
   void incrementFollowers() {
     followers++;
   }
 
-  // Method to pick an image from the gallery
+
   Future<void> pickImage() async {
     final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
 

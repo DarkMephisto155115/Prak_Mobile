@@ -15,10 +15,10 @@ class LoginController extends GetxController {
     String email = emailController.text;
     String password = passwordController.text;
 
-    // Logika untuk login (tambahkan validasi email/password)
+
     if (email.isNotEmpty && password.isNotEmpty) {
       Get.snackbar('Success', 'Logged in successfully');
-      // Navigasi ke halaman berikutnya
+
     } else {
       Get.snackbar('Error', 'Please enter email and password');
     }

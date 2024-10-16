@@ -3,23 +3,10 @@ import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import 'package:webview_flutter/webview_flutter.dart';
 
-import '../../app/routes/app_pages.dart';
+import '../routes/app_pages.dart';
+import 'Webview_page.dart';
 
-
-class HOME extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Wattpad Home',
-      theme: ThemeData(
-        primarySwatch: Colors.orange,
-      ),
-      home: HomePage(),
-    );
-  }
-}
 
 class HomePage extends GetView {
   @override
@@ -31,7 +18,7 @@ class HomePage extends GetView {
           IconButton(
             icon: Icon(Icons.search),
             onPressed: () {
-              // Aksi untuk search
+
             },
           ),
         ],
@@ -40,7 +27,6 @@ class HomePage extends GetView {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Bagian untuk story populer
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Text(
@@ -50,7 +36,6 @@ class HomePage extends GetView {
             ),
             StoryCarousel(),
 
-            // Bagian kategori
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Text(
@@ -60,7 +45,6 @@ class HomePage extends GetView {
             ),
             CategoryList(),
 
-            // Bagian cerita rekomendasi
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Text(
@@ -90,6 +74,8 @@ class HomePage extends GetView {
         onTap: (index) {
           if(index == 1){
             Get.toNamed(Routes.API);
+          }else if(index == 2){
+            Get.toNamed(Routes.PROFILE);
           }
         },
       ),
@@ -110,10 +96,8 @@ class _StoryCarouselState extends State<StoryCarousel> {
     'Story 4',
   ];
 
-  // List untuk menyimpan gambar yang dipilih dari galeri
   List<File?> _selectedImages = [null, null, null, null];
 
-  // Fungsi untuk memanggil Image Picker
   Future<void> _pickImage(int index) async {
     final ImagePicker _picker = ImagePicker();
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
@@ -141,7 +125,7 @@ class _StoryCarouselState extends State<StoryCarousel> {
                   Expanded(
                     child: GestureDetector(
                       onTap: () {
-                        _pickImage(index); // Memilih gambar saat story ditekan
+                        _pickImage(index);
                       },
                       child: _selectedImages[index] != null
                           ? Image.file(
@@ -235,31 +219,3 @@ class RecommendedStories extends GetView {
   }
 }
 
-class WebViewScreen extends StatefulWidget {
-  final String url;
-
-  WebViewScreen({required this.url});
-
-  @override
-  _WebViewScreenState createState() => _WebViewScreenState();
-}
-
-class _WebViewScreenState extends State<WebViewScreen> {
-  late final WebViewController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = WebViewController()..loadRequest(Uri.parse(widget.url));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('WebView'),
-      ),
-      body: WebViewWidget(controller: _controller),
-    );
-  }
-}

@@ -1,7 +1,7 @@
 // lib/presentation/app.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:terra_brain/app/routes/app_pages.dart';
+import 'package:terra_brain/presentation/routes/app_pages.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
