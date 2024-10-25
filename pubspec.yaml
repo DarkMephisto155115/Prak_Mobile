@@ -40,6 +40,12 @@ dependencies:
   image_picker: ^1.1.2
   webview_flutter: ^4.8.0
   http: ^0.13.4
+  cloud_firestore: ^5.4.4
+  firebase_core: ^3.6.0
+  firebase_auth: ^5.3.1
+  shared_preferences: ^2.3.2
+  firebase_storage: ^12.3.4
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -63,7 +69,7 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/images/my_image.JPG
+    - assets/images/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

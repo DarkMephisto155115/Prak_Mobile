@@ -19,7 +19,7 @@ class LoginPage extends GetView<LoginController> {
           children: [
             TextField(
               controller: controller.emailController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Email or username',
                 labelStyle: TextStyle(color: Colors.white),
                 border: OutlineInputBorder(),
@@ -29,7 +29,7 @@ class LoginPage extends GetView<LoginController> {
               ),
               style: TextStyle(color: Colors.white),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Obx(() => TextField(
               controller: controller.passwordController,
               obscureText: controller.isPasswordHidden.value,
@@ -50,40 +50,42 @@ class LoginPage extends GetView<LoginController> {
                   onPressed: controller.togglePasswordVisibility,
                 ),
               ),
-              style: TextStyle(color: Colors.white),
+              style: const TextStyle(color: Colors.white),
             )),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
-                // controller.login();
-                Get.toNamed(Routes.HOME);
+                controller.login();
+                // Get.toNamed(Routes.HOME);
               },
               child: Text('Log in'),
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.black, backgroundColor: Colors.white,
               ),
             ),
-            SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                Get.toNamed(Routes.REGISTRATION);
-              },
-              child: Text('Register'),
-              style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.black, backgroundColor: Colors.white,
-              ),
-            ),
-            SizedBox(height: 16),
+            // SizedBox(height: 16),
+            // ElevatedButton(
+            //   onPressed: () {
+            //     Get.toNamed(Routes.REGISTRATION);
+            //   },
+            //   child: Text('Register'),
+            //   style: ElevatedButton.styleFrom(
+            //     foregroundColor: Colors.black, backgroundColor: Colors.white,
+            //   ),
+            // ),
+            const SizedBox(height: 16),
             TextButton(
               onPressed: () {
                 Get.snackbar('Forgot Password', 'Redirect to forgot password');
+                // Get.toNamed(Routes.REGISTRATION);
               },
               child: Text('Forgot password?', style: TextStyle(color: Colors.white)),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             TextButton(
               onPressed: () {
-                Get.snackbar('Sign Up', 'Redirect to sign up');
+                Get.toNamed(Routes.REGISTRATION);
+                // Get.snackbar('Sign Up', 'Redirect to sign up');
               },
               child: Text("Don't have an account? Sign up", style: TextStyle(color: Colors.white)),
             ),

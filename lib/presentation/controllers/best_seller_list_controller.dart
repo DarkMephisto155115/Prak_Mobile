@@ -1,4 +1,3 @@
-// best_seller_list_controller.dart
 import 'package:get/get.dart';
 import 'dart:convert';
 import '../model/list_category.dart';

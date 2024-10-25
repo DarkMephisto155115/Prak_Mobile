@@ -1,4 +1,3 @@
-// api_service.dart
 import 'package:get/get.dart';
 
 class ApiService extends GetConnect {

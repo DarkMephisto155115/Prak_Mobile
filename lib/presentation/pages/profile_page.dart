@@ -4,15 +4,17 @@ import 'dart:io';
 import '../controllers/profile_controller.dart';
 
 class ProfileScreen extends GetView<ProfileController> {
+  const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: const Color(0xFF171717),
         elevation: 0,
         title: Text('Profile'),
+        titleTextStyle: TextStyle(color: Colors.white),
         centerTitle: true,
         actions: [
           IconButton(
@@ -36,15 +38,18 @@ class ProfileScreen extends GetView<ProfileController> {
                 return CircleAvatar(
                   radius: 50,
                   backgroundImage: controller.profileImagePath.value.isEmpty
-                      ? AssetImage('assets/profile_picture.png')  // Default image
-                      : FileImage(File(controller.profileImagePath.value)) as ImageProvider,
+                      ? AssetImage('assets/images/default_profile.jpeg')
+                      : FileImage(File(controller.profileImagePath.value)),
                 );
               }),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               'Augmunted hum...',
-              style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold),
             ),
             Text(
               '@AndikaSalsabilah',
@@ -132,7 +137,8 @@ class ProfileScreen extends GetView<ProfileController> {
                         'Darksiders concept',
                         style: TextStyle(color: Colors.white),
                       ),
-                      subtitle: Text('0 Published Stories', style: TextStyle(color: Colors.grey)),
+                      subtitle: Text('0 Published Stories',
+                          style: TextStyle(color: Colors.grey)),
                     ),
                   ),
                 ],
