@@ -29,8 +29,8 @@ class LoginController extends GetxController {
 
         Get.snackbar('Success', 'Logged in successfully',  backgroundColor: Colors.green, colorText: Colors.white);
 
-        Get.toNamed(Routes.HOME);
-        // Get.offAllNamed("/login"); jika logout sudah diimpelementasi
+        // Get.toNamed(Routes.HOME);
+        Get.offAllNamed("/login"); 
       } on FirebaseAuthException catch (e) {
         String message;
         if (e.code == 'user-not-found') {
@@ -50,15 +50,6 @@ class LoginController extends GetxController {
       Get.snackbar('Error', 'Please enter email and password',
           backgroundColor: Colors.red, colorText: Colors.white);
     }
-  }
-
-  Future<void> logout() async {
-    await _auth.signOut();
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.remove('isLoggedIn');
-    await prefs.remove('userId');
-    Get.toNamed(Routes.LOGIN);
-    Get.snackbar('Succes', 'Logged out successfuly');
   }
 
   @override
