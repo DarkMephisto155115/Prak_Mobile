@@ -75,7 +75,7 @@ class RegistrationPage extends GetView<RegistrationController> {
               // }),
               const SizedBox(height: 20),
               _buildTextField(
-                label: 'name',
+                label: 'Name',
                 onChanged: (value) => controller.name.value = value,
               ),
               _buildTextField(
@@ -84,7 +84,7 @@ class RegistrationPage extends GetView<RegistrationController> {
               ),
               const SizedBox(height: 20),
               _buildTextField(
-                label: 'password',
+                label: 'Password',
                 onChanged: (value) => controller.password.value = value,
               ),
               const SizedBox(height: 20),
@@ -127,13 +127,6 @@ class RegistrationPage extends GetView<RegistrationController> {
                   onPressed: () async {
                     try {
                       await controller.register();
-                      Get.snackbar(
-                        'Success',
-                        'Registration successful',
-                        backgroundColor: Colors.green,
-                        colorText: Colors.white,
-                      );
-                      Get.offAllNamed('/home');
                     } catch (e) {
                       Get.snackbar(
                         'Error',

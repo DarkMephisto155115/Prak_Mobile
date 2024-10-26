@@ -11,7 +11,8 @@ class SplashScreen extends StatelessWidget {
     bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
 
     if (isLoggedIn) {
-      Get.offAllNamed(Routes.HOME);
+      // Get.offAllNamed(Routes.HOME);
+      Get.offAllNamed(Routes.LOGIN);
     } else {
       Get.offAllNamed(Routes.LOGIN);
     }

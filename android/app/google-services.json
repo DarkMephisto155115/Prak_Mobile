@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "1850745301",
-    "project_id": "book-bbbb6",
-    "storage_bucket": "book-bbbb6.appspot.com"
+    "project_number": "762016901663",
+    "project_id": "terra-brain-e64f7",
+    "storage_bucket": "terra-brain-e64f7.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1850745301:android:908854efd03abbf1b4dd5c",
+        "mobilesdk_app_id": "1:762016901663:android:99e7aae0d76d8a40eb032a",
         "android_client_info": {
           "package_name": "com.example.terra_brain"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAYKLDdYELTwqXziElNo2xR3A2O2tIyQeI"
+          "current_key": "AIzaSyA6c71PEEHUK1KcwssZdG5nRrOhFzNofkQ"
         }
       ],
       "services": {

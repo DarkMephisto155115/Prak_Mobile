@@ -32,6 +32,7 @@ class AppPages {
     GetPage(
       name: Routes.REGISTRATION,
       page: () => RegistrationPage(),
+      binding: RegisterBinding(),
     ),
     GetPage(
       name: Routes.LOGIN,
