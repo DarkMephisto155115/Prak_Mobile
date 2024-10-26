@@ -6,12 +6,13 @@ import 'package:terra_brain/presentation/pages/home_page.dart';
 import 'package:terra_brain/presentation/pages/profile_page.dart';
 import 'package:terra_brain/presentation/pages/image_page.dart';
 import 'package:terra_brain/presentation/pages/registration_page.dart';
+import 'package:terra_brain/presentation/pages/splash_screen.dart';
 import '../../presentation/pages/login_page.dart';
 
 part 'app_routes.dart';
 
 class AppPages {
-  static const INITIAL = Routes.LOGIN;
+  static const INITIAL = Routes.SPLASH;
 
   static final routes = [
     GetPage(
@@ -41,6 +42,11 @@ class AppPages {
       name: Routes.API,
       page: () => BestSellerListScreen(),
       binding: APIBinding()
+    ),
+    GetPage(
+      name: Routes.SPLASH,
+      page: () => const SplashScreen(),
+      binding: RegisterBinding(),
     ),
   ];
 }

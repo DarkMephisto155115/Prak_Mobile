@@ -8,19 +8,17 @@ class ProfileController extends GetxController {
 
   final ImagePicker _picker = ImagePicker();
 
-
   void incrementCoins() {
     coins++;
   }
-
 
   void incrementFollowers() {
     followers++;
   }
 
-
   Future<void> pickImage() async {
-    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    final XFile? pickedFile =
+        await _picker.pickImage(source: ImageSource.gallery);
 
     if (pickedFile != null) {
       profileImagePath.value = pickedFile.path;

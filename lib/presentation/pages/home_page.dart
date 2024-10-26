@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
@@ -9,14 +8,16 @@ import 'Webview_page.dart';
 
 
 class HomePage extends GetView {
+  const HomePage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Wattpad'),
+        title: const Text('Wattpad'),
         actions: [
           IconButton(
-            icon: Icon(Icons.search),
+            icon: const Icon(Icons.search),
             onPressed: () {
 
             },
@@ -27,17 +28,17 @@ class HomePage extends GetView {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
+            const Padding(
+              padding: EdgeInsets.all(8.0),
               child: Text(
                 'Popular Stories',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
             ),
-            StoryCarousel(),
+            const StoryCarousel(),
 
-            Padding(
-              padding: const EdgeInsets.all(8.0),
+            const Padding(
+              padding: EdgeInsets.all(8.0),
               child: Text(
                 'Categories',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -45,8 +46,8 @@ class HomePage extends GetView {
             ),
             CategoryList(),
 
-            Padding(
-              padding: const EdgeInsets.all(8.0),
+            const Padding(
+              padding: EdgeInsets.all(8.0),
               child: Text(
                 'Recommended for You',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -57,7 +58,7 @@ class HomePage extends GetView {
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
-        items: [
+        items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Home',
@@ -84,7 +85,10 @@ class HomePage extends GetView {
 }
 
 class StoryCarousel extends StatefulWidget {
+  const StoryCarousel({super.key});
+
   @override
+  // ignore: library_private_types_in_public_api
   _StoryCarouselState createState() => _StoryCarouselState();
 }
 

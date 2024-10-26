@@ -1,4 +1,3 @@
-// list_category.dart
 class ListCategory {
   final String listName;
   final String displayName;
