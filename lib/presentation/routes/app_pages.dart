@@ -6,6 +6,7 @@ import 'package:terra_brain/presentation/pages/home_page.dart';
 import 'package:terra_brain/presentation/pages/profile_page.dart';
 import 'package:terra_brain/presentation/pages/image_page.dart';
 import 'package:terra_brain/presentation/pages/registration_page.dart';
+import 'package:terra_brain/presentation/pages/setting_page.dart';
 import 'package:terra_brain/presentation/pages/splash_screen.dart';
 import '../../presentation/pages/login_page.dart';
 
@@ -47,6 +48,11 @@ class AppPages {
       name: Routes.SPLASH,
       page: () => const SplashScreen(),
       binding: RegisterBinding(),
+    ),
+    GetPage(
+      name: Routes.SETTING,
+      page: () => const SettingPage(),
+      binding: SettingBinding(),
     ),
   ];
 }

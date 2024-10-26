@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'dart:io';
+import 'package:terra_brain/presentation/routes/app_pages.dart';
 import '../controllers/profile_controller.dart';
 
 class ProfileScreen extends GetView<ProfileController> {
@@ -13,14 +13,14 @@ class ProfileScreen extends GetView<ProfileController> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF171717),
         elevation: 0,
-        title: Text('Profile'),
-        titleTextStyle: TextStyle(color: Colors.white),
+        title: const Text('Profile'),
+        titleTextStyle: const TextStyle(color: Colors.white),
         centerTitle: true,
         actions: [
           IconButton(
-            icon: Icon(Icons.settings, color: Colors.white),
+            icon: const Icon(Icons.settings, color: Colors.white),
             onPressed: () {
-              // Settings action
+              Get.toNamed(Routes.SETTING);
             },
           ),
         ],
@@ -29,33 +29,26 @@ class ProfileScreen extends GetView<ProfileController> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // Profile image and username
-            GestureDetector(
-              onTap: () {
-                controller.pickImage();
-              },
-              child: Obx(() {
-                return CircleAvatar(
-                  radius: 50,
-                  backgroundImage: controller.profileImagePath.value.isEmpty
-                      ? AssetImage('assets/images/default_profile.jpeg')
-                      : FileImage(File(controller.profileImagePath.value)),
-                );
-              }),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Augmunted hum...',
+            Obx(() => CircleAvatar(
+              radius: 50,
+              backgroundImage: controller.imagesURL.value.isNotEmpty
+                  ? NetworkImage(controller.imagesURL.value)
+                  : const AssetImage('assets/images/default_profile.jpeg') as ImageProvider,
+            )),
+            const SizedBox(height: 16),
+            Obx(() => Text(
+              controller.name.value,
               style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold),
-            ),
-            Text(
-              '@AndikaSalsabilah',
-              style: TextStyle(color: Colors.grey, fontSize: 16),
-            ),
-            SizedBox(height: 16),
+                color: Colors.white,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            )),
+            Obx(() => Text(
+              '@${controller.username.value}',
+              style: const TextStyle(color: Colors.grey, fontSize: 16),
+            )),
+            const SizedBox(height: 16),
 
             // Coins and followers
             Obx(() {
@@ -66,22 +59,22 @@ class ProfileScreen extends GetView<ProfileController> {
                     children: [
                       Text(
                         '${controller.coins.value}',
-                        style: TextStyle(color: Colors.white, fontSize: 20),
+                        style: const TextStyle(color: Colors.white, fontSize: 20),
                       ),
-                      Text(
+                      const Text(
                         'Coins',
                         style: TextStyle(color: Colors.grey, fontSize: 16),
                       ),
                     ],
                   ),
-                  SizedBox(width: 40),
+                  const SizedBox(width: 40),
                   Column(
                     children: [
                       Text(
                         '${controller.followers.value}',
-                        style: TextStyle(color: Colors.white, fontSize: 20),
+                        style: const TextStyle(color: Colors.white, fontSize: 20),
                       ),
-                      Text(
+                      const Text(
                         'Followers',
                         style: TextStyle(color: Colors.grey, fontSize: 16),
                       ),
@@ -90,7 +83,7 @@ class ProfileScreen extends GetView<ProfileController> {
                 ],
               );
             }),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
 
             // Buttons for lists and followers
             Row(
@@ -108,9 +101,9 @@ class ProfileScreen extends GetView<ProfileController> {
                     ),
                   ],
                 ),
-                SizedBox(width: 40),
+                const SizedBox(width: 40),
                 Column(
-                  children: [
+                  children: const [
                     Text(
                       '0',
                       style: TextStyle(color: Colors.white, fontSize: 20),
@@ -123,22 +116,23 @@ class ProfileScreen extends GetView<ProfileController> {
                 ),
               ],
             ),
-            SizedBox(height: 20),
-
+            const SizedBox(height: 20),
             // Story card
             Expanded(
               child: ListView(
                 children: [
                   Card(
                     color: Colors.grey[900],
-                    child: ListTile(
+                    child: const ListTile(
                       leading: Icon(Icons.book, color: Colors.white),
                       title: Text(
                         'Darksiders concept',
                         style: TextStyle(color: Colors.white),
                       ),
-                      subtitle: Text('0 Published Stories',
-                          style: TextStyle(color: Colors.grey)),
+                      subtitle: Text(
+                        '0 Published Stories',
+                        style: TextStyle(color: Colors.grey),
+                      ),
                     ),
                   ),
                 ],
