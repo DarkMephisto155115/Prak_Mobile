@@ -29,8 +29,8 @@ class LoginController extends GetxController {
 
         Get.snackbar('Success', 'Logged in successfully',  backgroundColor: Colors.green, colorText: Colors.white);
 
-        // Get.toNamed(Routes.HOME);
-        Get.offAllNamed("/login"); 
+        Get.toNamed(Routes.HOME);
+        // Get.offAllNamed("/login"); 
       } on FirebaseAuthException catch (e) {
         String message;
         if (e.code == 'user-not-found') {

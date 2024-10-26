@@ -2,10 +2,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:terra_brain/presentation/routes/app_pages.dart';
+import 'package:terra_brain/presentation/service/notif_handler.dart';
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  MyApp({super.key});
 
+  final NotificationHandler _notificationHandler = NotificationHandler();
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
