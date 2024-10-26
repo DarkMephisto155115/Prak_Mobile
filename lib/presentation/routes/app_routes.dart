@@ -9,4 +9,5 @@ abstract class Routes {
   static const LOGIN = '/login';
   static const API = '/api';
   static const SPLASH = '/splash';
+  static const SETTING = '/setting';
 }

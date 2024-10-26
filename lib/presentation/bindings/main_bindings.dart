@@ -3,6 +3,7 @@ import 'package:terra_brain/presentation/controllers/LoginController.dart';
 import 'package:terra_brain/presentation/controllers/best_seller_list_controller.dart';
 import 'package:terra_brain/presentation/controllers/profile_controller.dart';
 import 'package:terra_brain/presentation/controllers/register_controller.dart';
+import 'package:terra_brain/presentation/controllers/seeting_controller.dart';
 
 class MainBinding extends Bindings {
   @override
@@ -43,4 +44,14 @@ class RegisterBinding extends Bindings {
       () => RegistrationController(),
     );
   }
+}
+
+class SettingBinding extends  Bindings {
+  @override
+  void dependencies() {
+    Get.lazyPut<SettingController>(
+      () => SettingController(),
+    );
+  }
+  
 }
