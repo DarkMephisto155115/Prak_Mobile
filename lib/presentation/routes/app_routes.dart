@@ -10,4 +10,5 @@ abstract class Routes {
   static const API = '/api';
   static const SPLASH = '/splash';
   static const SETTING = '/setting';
+  static const FAVORITE = '/favorite';
 }

@@ -2,6 +2,7 @@
 import 'package:get/get.dart';
 import 'package:terra_brain/presentation/bindings/main_bindings.dart';
 import 'package:terra_brain/presentation/pages/API_page.dart';
+import 'package:terra_brain/presentation/pages/favorite_page.dart';
 import 'package:terra_brain/presentation/pages/home_page.dart';
 import 'package:terra_brain/presentation/pages/profile_page.dart';
 import 'package:terra_brain/presentation/pages/image_page.dart';
@@ -54,6 +55,11 @@ class AppPages {
       name: Routes.SETTING,
       page: () => const SettingPage(),
       binding: SettingBinding(),
+    ),
+    GetPage(
+      name: Routes.FAVORITE,
+      page: () => FavoritesPage(),
+      binding: FavoriteBinding(),
     ),
   ];
 }
