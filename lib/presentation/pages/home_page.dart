@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:io';
 
 import '../routes/app_pages.dart';
-import 'Webview_page.dart';
+import 'webview_page.dart';
 
-class HomePage extends GetView {
+class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
   @override
@@ -77,11 +78,15 @@ class HomePage extends GetView {
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.book),
-              label: 'Library / Write',
+              label: 'Library',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.post_add),
               label: 'Write',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.favorite),
+              label: 'Favorites',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.person),
@@ -90,10 +95,15 @@ class HomePage extends GetView {
           ],
           onTap: (index) {
             if (index == 1) {
+              // Define your route for Library
               Get.toNamed(Routes.API);
             } else if (index == 2) {
-              // Get.toNamed(Routes.WRITE);
-            }else if (index == 3) {
+              // Define your route for Write
+              Get.toNamed('/write');
+            } else if (index == 3) {
+              Get.to(() => FavoritesPage());
+            } else if (index == 4) {
+              // Define your route for Profile
               Get.toNamed(Routes.PROFILE);
             }
           },
@@ -177,6 +187,8 @@ class _StoryCarouselState extends State<StoryCarousel> {
 }
 
 class CategoryList extends StatelessWidget {
+  CategoryList({super.key});
+
   final List<String> categories = [
     'Romance',
     'Fantasy',
@@ -206,7 +218,9 @@ class CategoryList extends StatelessWidget {
   }
 }
 
-class RecommendedStories extends GetView {
+class RecommendedStories extends StatelessWidget {
+  RecommendedStories({super.key});
+
   final List<String> recommended = [
     'Stuck With Mr. Billionaire',
     'Hell University',
@@ -239,3 +253,124 @@ class RecommendedStories extends GetView {
     );
   }
 }
+
+class FavoritesPage extends StatelessWidget {
+  final CollectionReference favorites =
+  FirebaseFirestore.instance.collection('favorites');
+
+  Future<void> addFavorite(String storyTitle) async {
+    try {
+      await FirebaseFirestore.instance.collection('favorites').add({'title': storyTitle});
+      Get.snackbar("Sukses", "Data berhasil disimpan ke Firestore");
+    } catch (e) {
+      Get.snackbar("Gagal", "Gagal menyimpan data ke Firestore: $e");
+    }
+  }
+
+  Future<void> updateFavorite(String id, String newTitle) async {
+    await favorites.doc(id).update({'title': newTitle});
+  }
+
+  Future<void> deleteFavorite(String id) async {
+    await favorites.doc(id).delete();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Favorites'),
+      ),
+      body: StreamBuilder(
+        stream: favorites.snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) return Text('Error: ${snapshot.error}');
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
+
+          final data = snapshot.data!.docs;
+
+          return ListView.builder(
+            itemCount: data.length,
+            itemBuilder: (context, index) {
+              final item = data[index];
+              return ListTile(
+                title: Text(item['title']),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.edit),
+                      onPressed: () async {
+                        String? newTitle = await _showEditDialog(context, item['title']);
+                        if (newTitle != null && newTitle.isNotEmpty) {
+                          updateFavorite(item.id, newTitle);
+                        }
+                      },
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.delete),
+                      onPressed: () => deleteFavorite(item.id),
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          String? newTitle = await _showAddDialog(context);
+          if (newTitle != null && newTitle.isNotEmpty) {
+            addFavorite(newTitle);
+          }
+        },
+        child: Icon(Icons.add),
+      ),
+    );
+  }
+
+  Future<String?> _showAddDialog(BuildContext context) async {
+    TextEditingController controller = TextEditingController();
+    return showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Add Favorite'),
+        content: TextField(
+          controller: controller,
+          decoration: InputDecoration(hintText: 'Story Title'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(controller.text),
+            child: Text('Add'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<String?> _showEditDialog(BuildContext context, String currentTitle) async {
+    TextEditingController controller = TextEditingController(text: currentTitle);
+    return showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Edit Favorite'),
+        content: TextField(
+          controller: controller,
+          decoration: InputDecoration(hintText: 'Story Title'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(controller.text),
+            child: Text('Update'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
