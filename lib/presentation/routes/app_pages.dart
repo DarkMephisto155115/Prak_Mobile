@@ -10,13 +10,13 @@ import 'package:terra_brain/presentation/pages/registration_page.dart';
 import 'package:terra_brain/presentation/pages/setting_page.dart';
 import 'package:terra_brain/presentation/pages/splash_screen.dart';
 import '../../presentation/pages/login_page.dart';
-import '../pages/cam_impementation.dart';
+// import '../pages/cam_impementation.dart';
 import '../pages/write_page.dart';
 
 part 'app_routes.dart';
 
 class AppPages {
-  static const INITIAL = Routes.LOGIN;
+  static const INITIAL = Routes.SPLASH;
 
   static final routes = [
     GetPage(

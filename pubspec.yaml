@@ -55,6 +55,7 @@ dependencies:
   just_audio: ^0.9.30
   audioplayers: ^6.1.0
   speech_to_text: ^7.0.0
+  permission_handler: ^11.3.1
 
 dev_dependencies:
   flutter_test:

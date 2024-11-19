@@ -3,6 +3,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:video_player/video_player.dart';
 import 'package:audioplayers/audioplayers.dart';
 
@@ -31,6 +32,8 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
   void initState() {
     super.initState();
     _initializeRecorder();
+    _initAudioPlayer();
+    requestMicrophonePermission();
   }
 
   @override
@@ -45,6 +48,16 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
     await _audioRecorder.openRecorder();
   }
 
+  Future<void> requestMicrophonePermission() async {
+    var status = await Permission.microphone.request();
+    if (status.isDenied || status.isPermanentlyDenied) {
+      // Permission denied. Show a dialog or redirect user to settings.
+      print("Microphone permission is required for recording.");
+    } else {
+      print("Microphone permission granted.");
+    }
+  }
+
   Future<void> _pickMedia(String type, ImageSource source) async {
     XFile? file;
 
@@ -53,7 +66,7 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
       if (file != null) {
         setState(() {
           _selectedImage = File(file!.path);
-          _selectedVideo = null; // Reset video when a new image is picked
+          _selectedVideo = null;
           _videoPlayerController?.dispose();
         });
       }
@@ -62,10 +75,18 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
       if (file != null) {
         setState(() {
           _selectedVideo = File(file!.path);
-          _selectedImage = null; // Reset image when a new video is picked
+          _selectedImage = null;
           _videoPlayerController = VideoPlayerController.file(_selectedVideo!)
+            ..addListener(() {
+              if (_videoPlayerController!.value.position ==
+                  _videoPlayerController!.value.duration) {
+                setState(() {
+                  _videoPlayerController!.pause();
+                });
+              }
+            })
             ..initialize().then((_) {
-              setState(() {});  // Refresh UI once the video is initialized
+              setState(() {});
             }).catchError((e) {
               print("Error initializing video player: $e");
             });
@@ -92,12 +113,19 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
     }
   }
 
+  void _initAudioPlayer() {
+    _audioPlayer.onPlayerComplete.listen((event) {
+      setState(() {
+        _isAudioPlaying = false; // Reset ke state awal setelah selesai
+      });
+    });
+  }
+
   Future<void> _toggleAudioPlayback() async {
     if (_isAudioPlaying) {
       await _audioPlayer.pause();
     } else {
       if (_recordedAudio != null) {
-        // Use FileSource for local audio files
         await _audioPlayer.play(DeviceFileSource(_recordedAudio!.path));
       }
     }
@@ -106,17 +134,48 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
     });
   }
 
-  Widget _mediaPreview() {
+  Widget _imageVideoPreview() {
     if (_selectedImage != null) {
-      return Image.file(_selectedImage!, fit: BoxFit.cover, height: 200);
-    } else if (_selectedVideo != null && _videoPlayerController != null && _videoPlayerController!.value.isInitialized) {
-      return SizedBox(
-        height: 200,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            VideoPlayer(_videoPlayerController!),
-            IconButton(
+      return Stack(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: Image.file(
+              _selectedImage!,
+              fit: BoxFit.cover,
+              height: 200,
+              width: double.infinity,
+            ),
+          ),
+          Positioned(
+            bottom: 10,
+            right: 10,
+            child: IconButton(
+              icon: const Icon(Icons.delete, color: Colors.red, size: 30),
+              onPressed: () {
+                setState(() {
+                  _selectedImage = null;
+                });
+              },
+            ),
+          ),
+        ],
+      );
+    } else if (_selectedVideo != null &&
+        _videoPlayerController != null &&
+        _videoPlayerController!.value.isInitialized) {
+      return Stack(
+        children: [
+          SizedBox(
+            height: 200,
+            width: double.infinity,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: VideoPlayer(_videoPlayerController!),
+            ),
+          ),
+          Center(
+            child: IconButton(
               icon: Icon(
                 _videoPlayerController!.value.isPlaying
                     ? Icons.pause
@@ -134,28 +193,98 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
                 });
               },
             ),
-          ],
-        ),
-      );
-    } else if (_recordedAudio != null) {
-      return Row(
-        children: [
-          Icon(Icons.audiotrack, color: Colors.orange),
-          const SizedBox(width: 10),
-          Text('Audio Recorded'),
-          IconButton(
-            icon: Icon(
-              _isAudioPlaying ? Icons.pause : Icons.play_arrow,
-              color: Colors.orange,
+          ),
+          Positioned(
+            bottom: 10,
+            right: 10,
+            child: IconButton(
+              icon: const Icon(Icons.delete, color: Colors.red, size: 30),
+              onPressed: () {
+                setState(() {
+                  _selectedVideo = null;
+                  _videoPlayerController?.dispose();
+                  _videoPlayerController = null;
+                });
+              },
             ),
-            onPressed: _toggleAudioPlayback,
           ),
         ],
       );
     }
     return const Text(
-      'Tap to add media',
-      style: TextStyle(color: Colors.grey),
+      'Tap to add an image or video',
+      style: TextStyle(color: Colors.grey, fontSize: 16),
+    );
+  }
+
+  Widget _audioPreview() {
+    if (_recordedAudio != null) {
+      return Stack(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            child: Row(
+              children: [
+                const Icon(Icons.audiotrack, color: Colors.orange, size: 30),
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Text(
+                    'Audio Recorded',
+                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(
+                    _isAudioPlaying ? Icons.pause : Icons.play_arrow,
+                    color: Colors.orange,
+                    size: 30,
+                  ),
+                  onPressed: _toggleAudioPlayback,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.red, size: 30),
+                  onPressed: () {
+                    setState(() {
+                      _recordedAudio = null;
+                    });
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+    return GestureDetector(
+      onTap: _recordedAudio == null ? _recordAudio : null,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        // decoration: BoxDecoration(
+        //   color: Colors.grey[900],
+        //   borderRadius: BorderRadius.circular(10),
+        // ),
+        child: Row(
+          children: [
+            // Icon(Icons.mic, color: Colors.orange, size: 30),
+            const SizedBox(width: 10),
+            const Expanded(
+              child: Text(
+                'Tap to record audio',
+                style: TextStyle(color: Colors.white, fontSize: 16),
+              ),
+            ),
+            // GestureDetector(
+            // onTap: _recordAudio, // Start or stop recording
+            // child:
+            Icon(
+              _isRecording ? Icons.stop : Icons.mic,
+              color: _isRecording ? Colors.red : Colors.orange,
+              size: 30,
+            ),
+            // ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -164,34 +293,30 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: const Text('write test',
-            style: TextStyle(color: Colors.white)),
-        actions: [
-          // TextButton(
-          //   onPressed: () {
-          //     // Handle Publish
-          //   },
-          //   child: const Text(
-          //     'PUBLISH',
-          //     style: TextStyle(color: Colors.grey),
-          //   ),
-          // ),
-        ],
+        backgroundColor: Colors.deepPurple,
+        title: const Text(
+          'Write Your Story',
+          style: TextStyle(color: Colors.white),
+        ),
       ),
       body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             GestureDetector(
               onTap: () {
-                // Open media selection options
                 showModalBottomSheet(
                   context: context,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.vertical(top: Radius.circular(15)),
+                  ),
                   builder: (context) {
                     return Wrap(
                       children: [
                         ListTile(
-                          leading: const Icon(Icons.camera_alt),
+                          leading: const Icon(Icons.camera_alt,
+                              color: Colors.deepPurple),
                           title: const Text('Capture Image'),
                           onTap: () {
                             Navigator.pop(context);
@@ -199,7 +324,8 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
                           },
                         ),
                         ListTile(
-                          leading: const Icon(Icons.image),
+                          leading:
+                              const Icon(Icons.image, color: Colors.deepPurple),
                           title: const Text('Select Image from Gallery'),
                           onTap: () {
                             Navigator.pop(context);
@@ -207,7 +333,8 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
                           },
                         ),
                         ListTile(
-                          leading: const Icon(Icons.videocam),
+                          leading: const Icon(Icons.videocam,
+                              color: Colors.deepPurple),
                           title: const Text('Capture Video'),
                           onTap: () {
                             Navigator.pop(context);
@@ -215,7 +342,8 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
                           },
                         ),
                         ListTile(
-                          leading: const Icon(Icons.video_library),
+                          leading: const Icon(Icons.video_library,
+                              color: Colors.deepPurple),
                           title: const Text('Select Video from Gallery'),
                           onTap: () {
                             Navigator.pop(context);
@@ -229,26 +357,47 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
               },
               child: Container(
                 height: 200,
-                width: double.infinity,
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey),
                   borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.deepPurpleAccent),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.deepPurpleAccent.withOpacity(0.2),
+                      blurRadius: 10,
+                    ),
+                  ],
                 ),
-                child: Center(child: _mediaPreview()),
+                child: Center(child: _imageVideoPreview()),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Container(
+              height: 50,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.deepPurpleAccent),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.deepPurpleAccent.withOpacity(0.2),
+                    blurRadius: 10,
+                  ),
+                ],
+              ),
+              child: Center(
+                child: _audioPreview(),
               ),
             ),
             const SizedBox(height: 20),
             TextField(
               controller: _titleController,
               style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 hintText: 'Title your Story Part',
-                hintStyle: TextStyle(color: Colors.grey),
-                enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.grey),
-                ),
-                focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.orange),
+                hintStyle: const TextStyle(color: Colors.grey),
+                filled: true,
+                fillColor: Colors.grey[900],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
                 ),
               ),
             ),
@@ -257,14 +406,13 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
               controller: _storyController,
               style: const TextStyle(color: Colors.white),
               maxLines: null,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 hintText: 'Write your story...',
-                hintStyle: TextStyle(color: Colors.grey),
-                enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.grey),
-                ),
-                focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.orange),
+                hintStyle: const TextStyle(color: Colors.grey),
+                filled: true,
+                fillColor: Colors.grey[900],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
                 ),
               ),
             ),
@@ -272,28 +420,30 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.grey[900],
         selectedItemColor: Colors.orange,
         unselectedItemColor: Colors.grey,
-        items: [
+        items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.arrow_back),
+            icon: Tooltip(
+              message: 'Go Back',
+              child: Icon(Icons.arrow_back),
+            ),
             label: 'Back',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.format_align_left),
+            icon: Tooltip(
+              message: 'Add Text',
+              child: Icon(Icons.format_align_left),
+            ),
             label: 'Text',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.image),
-            label: 'Media',
-          ),
-          BottomNavigationBarItem(
-            icon: GestureDetector(
-              onTap: _recordAudio,
-              child: Icon(_isRecording ? Icons.stop : Icons.mic),
+            icon: Tooltip(
+              message: 'Add Media',
+              child: Icon(Icons.image),
             ),
-            label: _isRecording ? 'Stop' : 'Record',
+            label: 'Media',
           ),
         ],
       ),
