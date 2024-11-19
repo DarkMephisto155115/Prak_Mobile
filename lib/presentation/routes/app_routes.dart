@@ -11,4 +11,5 @@ abstract class Routes {
   static const SPLASH = '/splash';
   static const SETTING = '/setting';
   static const FAVORITE = '/favorite';
+  static const WRITE = '/write';
 }

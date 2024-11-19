@@ -1,25 +1,62 @@
-// favorites_page.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../controllers/favorites_controller.dart';
 
-class FavoritesPage extends StatelessWidget {
+class FavoritesPage extends StatefulWidget {
+  @override
+  _FavoritesPageState createState() => _FavoritesPageState();
+}
+
+class _FavoritesPageState extends State<FavoritesPage> {
   final FavoritesController controller = Get.put(FavoritesController());
+  late stt.SpeechToText _speech;
+  bool _isListening = false;
+  String _spokenText = "";
+
+  @override
+  void initState() {
+    super.initState();
+    _speech = stt.SpeechToText();
+  }
+
+  Future<void> _startListening(TextEditingController targetController) async {
+    bool available = await _speech.initialize();
+    if (available) {
+      setState(() => _isListening = true);
+      _speech.listen(onResult: (result) {
+        setState(() {
+          _spokenText = result.recognizedWords;
+          targetController.text = _spokenText; // Update text controller
+        });
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Speech recognition is not available')),
+      );
+    }
+  }
+
+  void _stopListening() {
+    setState(() => _isListening = false);
+    _speech.stop();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Favorites', style: TextStyle(color: Colors.white)), // Title color set to white
-
+        title: const Text('Favorites', style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.grey[900],
       ),
-      backgroundColor: Colors.black, // Dark background color
+      backgroundColor: Colors.black,
       body: StreamBuilder(
         stream: controller.getFavoritesStream(),
         builder: (context, snapshot) {
-          if (snapshot.hasError) return Text('Error: ${snapshot.error}', style: TextStyle(color: Colors.white));
+          if (snapshot.hasError) {
+            return Text('Error: ${snapshot.error}', style: const TextStyle(color: Colors.white));
+          }
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -31,7 +68,7 @@ class FavoritesPage extends StatelessWidget {
             itemBuilder: (context, index) {
               final item = data[index];
               return Card(
-                color: Colors.grey[850], // Darker card color
+                color: Colors.grey[850],
                 child: ListTile(
                   title: Text(item['title'], style: const TextStyle(color: Colors.white)),
                   subtitle: Column(
@@ -99,30 +136,20 @@ class FavoritesPage extends StatelessWidget {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(
+            _buildTextFieldWithVoiceInput(
+              context: context,
               controller: titleController,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                hintText: 'Story Title',
-                hintStyle: TextStyle(color: Colors.grey),
-              ),
+              hint: "Story Title",
             ),
-            TextField(
+            _buildTextFieldWithVoiceInput(
+              context: context,
               controller: authorController,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                hintText: 'Author Name',
-                hintStyle: TextStyle(color: Colors.grey),
-              ),
+              hint: "Author Name",
             ),
-            TextField(
+            _buildTextFieldWithVoiceInput(
+              context: context,
               controller: descriptionController,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                hintText: 'Description',
-                hintStyle: TextStyle(color: Colors.grey),
-              ),
-              maxLines: 3,
+              hint: "Description",
             ),
           ],
         ),
@@ -140,6 +167,40 @@ class FavoritesPage extends StatelessWidget {
     );
   }
 
+  Widget _buildTextFieldWithVoiceInput({
+    required BuildContext context,
+    required TextEditingController controller,
+    required String hint,
+  }) {
+    return Row(
+      children: [
+        Expanded(
+          child: TextField(
+            controller: controller,
+            style: const TextStyle(color: Colors.white),
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: const TextStyle(color: Colors.grey),
+            ),
+          ),
+        ),
+        IconButton(
+          icon: Icon(
+            _isListening ? Icons.mic : Icons.mic_none,
+            color: Colors.orange,
+          ),
+          onPressed: () {
+            if (_isListening) {
+              _stopListening();
+            } else {
+              _startListening(controller);
+            }
+          },
+        ),
+      ],
+    );
+  }
+
   Future<Map<String, String>?> _showEditDialog(BuildContext context, QueryDocumentSnapshot item) async {
     final titleController = TextEditingController(text: item['title']);
     final authorController = TextEditingController(text: item['author']);
@@ -152,30 +213,20 @@ class FavoritesPage extends StatelessWidget {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(
+            _buildTextFieldWithVoiceInput(
+              context: context,
               controller: titleController,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                hintText: 'Story Title',
-                hintStyle: TextStyle(color: Colors.grey),
-              ),
+              hint: "Story Title",
             ),
-            TextField(
+            _buildTextFieldWithVoiceInput(
+              context: context,
               controller: authorController,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                hintText: 'Author Name',
-                hintStyle: TextStyle(color: Colors.grey),
-              ),
+              hint: "Author Name",
             ),
-            TextField(
+            _buildTextFieldWithVoiceInput(
+              context: context,
               controller: descriptionController,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                hintText: 'Description',
-                hintStyle: TextStyle(color: Colors.grey),
-              ),
-              maxLines: 3,
+              hint: "Description",
             ),
           ],
         ),

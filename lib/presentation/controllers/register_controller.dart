@@ -62,7 +62,7 @@ class RegistrationController extends GetxController {
       });
 
       Get.snackbar('Success', 'User registered successfully');
-      Get.offAllNamed("/login");
+      Get.toNamed("/login");
     } catch (e) {
       Get.snackbar('Error', e.toString());
     }

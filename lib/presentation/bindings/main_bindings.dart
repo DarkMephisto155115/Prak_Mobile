@@ -6,6 +6,8 @@ import 'package:terra_brain/presentation/controllers/profile_controller.dart';
 import 'package:terra_brain/presentation/controllers/register_controller.dart';
 import 'package:terra_brain/presentation/controllers/seeting_controller.dart';
 
+import '../controllers/home_controller.dart';
+
 class MainBinding extends Bindings {
   @override
   void dependencies() {}
@@ -61,6 +63,15 @@ class FavoriteBinding extends  Bindings {
   void dependencies() {
     Get.lazyPut<FavoritesController>(
           () => FavoritesController(),
+    );
+  }
+}
+
+class SensorBinding extends  Bindings {
+  @override
+  void dependencies() {
+    Get.lazyPut<HomeController>(
+          () => HomeController(),
     );
   }
 }
