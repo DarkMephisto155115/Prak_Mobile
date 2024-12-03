@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:terra_brain/presentation/controllers/seeting_controller.dart';
+import 'package:terra_brain/presentation/routes/app_pages.dart';
 
 class SettingPage extends GetView<SettingController> {
   const SettingPage({super.key});
@@ -37,6 +38,29 @@ class SettingPage extends GetView<SettingController> {
             onTap: () {
               // Tambahkan navigasi ke halaman Favorite Books di sini
               print("Navigate to Favorite Books");
+            },
+          ),
+          Divider(color: Colors.grey[800]),
+          ListTile(
+            title: const Text(
+              'GPS implementation',
+              style: TextStyle(color: Colors.white),
+            ),
+            onTap: () {
+              Get.toNamed(Routes.GPS);
+              print("Navigate to gps page");
+            },
+          ),
+          Divider(color: Colors.grey[800]),
+          ListTile(
+            title: const Text(
+              'Office Center',
+              style: TextStyle(color: Colors.white),
+            ),
+            onTap: () {
+              // Get.toNamed(Routes.GPS);
+              controller.openGoogleMaps(-7.925554, 112.596379);
+              print("Navigate office center");
             },
           ),
           Divider(color: Colors.grey[800]),

@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:terra_brain/presentation/bindings/main_bindings.dart';
 import 'package:terra_brain/presentation/pages/API_page.dart';
 import 'package:terra_brain/presentation/pages/favorite_page.dart';
+import 'package:terra_brain/presentation/pages/gps_page.dart';
 import 'package:terra_brain/presentation/pages/home_page.dart';
 import 'package:terra_brain/presentation/pages/profile_page.dart';
 import 'package:terra_brain/presentation/pages/image_page.dart';
@@ -65,8 +66,13 @@ class AppPages {
     ),
     GetPage(
       name: Routes.WRITE,
-      page: () => WriteStoryPage(),
+      page: () => const WriteStoryPage(),
       binding: SensorBinding(),
+    ),
+    GetPage(
+      name: Routes.GPS,
+      page: () => GpsPage(),
+      binding: GpsBinding(),
     ),
   ];
 }

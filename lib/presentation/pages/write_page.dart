@@ -116,7 +116,7 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
   void _initAudioPlayer() {
     _audioPlayer.onPlayerComplete.listen((event) {
       setState(() {
-        _isAudioPlaying = false; // Reset ke state awal setelah selesai
+        _isAudioPlaying = false;
       });
     });
   }
@@ -412,7 +412,7 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
                 filled: true,
                 fillColor: Colors.grey[900],
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(10),  
                 ),
               ),
             ),

@@ -12,4 +12,5 @@ abstract class Routes {
   static const SETTING = '/setting';
   static const FAVORITE = '/favorite';
   static const WRITE = '/write';
+  static const GPS = '/gps';
 }
