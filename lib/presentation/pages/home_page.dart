@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher_string.dart';
+import 'package:geolocator/geolocator.dart';
 import 'dart:io';
 
 import '../routes/app_pages.dart';
@@ -9,6 +12,60 @@ import 'webview_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
+
+  Future<void> _openGoogleMaps() async {
+    try {
+      // Cek izin lokasi
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          throw 'Izin lokasi ditolak.';
+        }
+      }
+
+      // Pastikan lokasi aktif
+      if (permission == LocationPermission.deniedForever) {
+        throw 'Izin lokasi ditolak secara permanen.';
+      }
+
+      // Dapatkan lokasi pengguna
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      // Format URL untuk Google Maps
+      final Uri googleMapsUrl = Uri.parse(
+          'https://www.google.com/maps/search/?api=1&query=${position.latitude},${position.longitude}');
+
+      print('Generated URL: $googleMapsUrl');
+
+      // Luncurkan URL di aplikasi eksternal atau fallback ke browser
+      if (await canLaunchUrl(googleMapsUrl)) {
+        await launchUrl(
+          googleMapsUrl,
+          mode: LaunchMode.externalApplication,
+        );
+      } else {
+        print('Cannot open Google Maps, fallback to browser');
+        await launchUrl(
+          googleMapsUrl,
+          mode: LaunchMode.inAppWebView,
+        );
+      }
+    } catch (e) {
+      // Tampilkan pesan kesalahan
+      Get.snackbar(
+        'Error',
+        e.toString(),
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      print('Error: $e');
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -108,6 +165,12 @@ class HomePage extends StatelessWidget {
             }
           },
         ),
+        floatingActionButton: FloatingActionButton(
+            onPressed: _openGoogleMaps,
+            backgroundColor: Colors.orange,
+            child: const Icon(Icons.map),
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       ),
     );
   }
