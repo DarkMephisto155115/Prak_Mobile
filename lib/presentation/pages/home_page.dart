@@ -1,17 +1,76 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher_string.dart';
+import 'package:geolocator/geolocator.dart';
 import 'dart:io';
 
 import '../routes/app_pages.dart';
 import 'favorite_page.dart';
 import 'webview_page.dart';
+import 'package:terra_brain/presentation/controllers/home_controller.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
+  Future<void> _openGoogleMaps() async {
+    try {
+      // Cek izin lokasi
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          throw 'Izin lokasi ditolak.';
+        }
+      }
+
+      // Pastikan lokasi aktif
+      if (permission == LocationPermission.deniedForever) {
+        throw 'Izin lokasi ditolak secara permanen.';
+      }
+
+      // Dapatkan lokasi pengguna
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      // Format URL untuk Google Maps
+      final Uri googleMapsUrl = Uri.parse(
+          'https://www.google.com/maps/search/?api=1&query=${position.latitude},${position.longitude}');
+
+      print('Generated URL: $googleMapsUrl');
+
+      // Luncurkan URL di aplikasi eksternal atau fallback ke browser
+      if (await canLaunchUrl(googleMapsUrl)) {
+        await launchUrl(
+          googleMapsUrl,
+          mode: LaunchMode.externalApplication,
+        );
+      } else {
+        print('Cannot open Google Maps, fallback to browser');
+        await launchUrl(
+          googleMapsUrl,
+          mode: LaunchMode.inAppWebView,
+        );
+      }
+    } catch (e) {
+      // Tampilkan pesan kesalahan
+      Get.snackbar(
+        'Error',
+        e.toString(),
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      print('Error: $e');
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
+    final ConnectivityController connectivityController = Get.put(ConnectivityController());
     return MaterialApp(
       theme: ThemeData(
         brightness: Brightness.dark,
@@ -108,6 +167,12 @@ class HomePage extends StatelessWidget {
             }
           },
         ),
+        floatingActionButton: FloatingActionButton(
+            onPressed: _openGoogleMaps,
+            backgroundColor: Colors.orange,
+            child: const Icon(Icons.map),
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       ),
     );
   }
@@ -218,6 +283,25 @@ class CategoryList extends StatelessWidget {
   }
 }
 
+class NoConnectionPage extends StatelessWidget {
+  const NoConnectionPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('No Connection'),
+      ),
+      body: Center(
+        child: Text(
+          'No Internet Connection',
+          style: TextStyle(fontSize: 24, color: Colors.red),
+        ),
+      ),
+    );
+  }
+}
+
 class RecommendedStories extends StatelessWidget {
   RecommendedStories({super.key});
 
@@ -235,6 +319,7 @@ class RecommendedStories extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ConnectivityController connectivityController = Get.put(ConnectivityController());
     return Column(
       children: recommended.map((story) {
         int index = recommended.indexOf(story);
@@ -246,7 +331,12 @@ class RecommendedStories extends StatelessWidget {
           title: Text(story, style: TextStyle(color: Colors.white)),
           subtitle: Text('Author Name', style: TextStyle(color: Colors.grey)),
           onTap: () {
-            Get.to(WebViewScreen(url: urls[index]));
+            if (connectivityController.isConnected.value) {
+              Get.to(WebViewScreen(url: urls[index]));
+            } else {
+              connectivityController.setTargetUrl(urls[index]);
+              Get.to(NoConnectionPage());
+            }
           },
         );
       }).toList(),
