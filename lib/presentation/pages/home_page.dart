@@ -9,6 +9,7 @@ import 'dart:io';
 import '../routes/app_pages.dart';
 import 'favorite_page.dart';
 import 'webview_page.dart';
+import 'package:terra_brain/presentation/controllers/home_controller.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -69,6 +70,7 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ConnectivityController connectivityController = Get.put(ConnectivityController());
     return MaterialApp(
       theme: ThemeData(
         brightness: Brightness.dark,
@@ -281,6 +283,25 @@ class CategoryList extends StatelessWidget {
   }
 }
 
+class NoConnectionPage extends StatelessWidget {
+  const NoConnectionPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('No Connection'),
+      ),
+      body: Center(
+        child: Text(
+          'No Internet Connection',
+          style: TextStyle(fontSize: 24, color: Colors.red),
+        ),
+      ),
+    );
+  }
+}
+
 class RecommendedStories extends StatelessWidget {
   RecommendedStories({super.key});
 
@@ -298,6 +319,7 @@ class RecommendedStories extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ConnectivityController connectivityController = Get.put(ConnectivityController());
     return Column(
       children: recommended.map((story) {
         int index = recommended.indexOf(story);
@@ -309,7 +331,12 @@ class RecommendedStories extends StatelessWidget {
           title: Text(story, style: TextStyle(color: Colors.white)),
           subtitle: Text('Author Name', style: TextStyle(color: Colors.grey)),
           onTap: () {
-            Get.to(WebViewScreen(url: urls[index]));
+            if (connectivityController.isConnected.value) {
+              Get.to(WebViewScreen(url: urls[index]));
+            } else {
+              connectivityController.setTargetUrl(urls[index]);
+              Get.to(NoConnectionPage());
+            }
           },
         );
       }).toList(),
