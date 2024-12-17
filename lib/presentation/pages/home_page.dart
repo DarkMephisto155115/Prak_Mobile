@@ -224,10 +224,12 @@ class _StoryCarouselState extends State<StoryCarousel> {
                         _selectedImages[index]!,
                         fit: BoxFit.cover,
                       )
-                          : Image.network(
-                        'https://via.placeholder.com/150',
-                        fit: BoxFit.cover,
-                      ),
+                          : 
+                          Image.asset('assets/150.png', fit: BoxFit.cover),
+                      //     Image.network(
+                      //   'https://via.placeholder.com/150',
+                      //   fit: BoxFit.cover,
+                      // ),
                     ),
                   ),
                   Padding(
@@ -324,10 +326,12 @@ class RecommendedStories extends StatelessWidget {
       children: recommended.map((story) {
         int index = recommended.indexOf(story);
         return ListTile(
-          leading: Image.network(
-            'https://via.placeholder.com/50',
-            fit: BoxFit.cover,
-          ),
+          leading: 
+          Image.asset('assets/50.png', fit: BoxFit.cover),
+          // Image.network(
+          //   'https://via.placeholder.com/50',
+          //   fit: BoxFit.cover,
+          // ),
           title: Text(story, style: TextStyle(color: Colors.white)),
           subtitle: Text('Author Name', style: TextStyle(color: Colors.grey)),
           onTap: () {

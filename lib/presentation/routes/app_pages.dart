@@ -66,7 +66,7 @@ class AppPages {
     ),
     GetPage(
       name: Routes.WRITE,
-      page: () => const WriteStoryPage(),
+      page: () => WriteStoryPage(),
       binding: SensorBinding(),
     ),
     GetPage(

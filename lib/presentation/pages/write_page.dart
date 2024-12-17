@@ -4,8 +4,10 @@ import 'dart:io';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:terra_brain/presentation/controllers/write_controller.dart';
 import 'package:video_player/video_player.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:get/get.dart';
 
 class WriteStoryPage extends StatefulWidget {
   const WriteStoryPage({Key? key}) : super(key: key);
@@ -19,6 +21,7 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
   final TextEditingController _storyController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
   final FlutterSoundRecorder _audioRecorder = FlutterSoundRecorder();
+  final WriteController _controller = Get.put(WriteController());
 
   File? _selectedImage;
   File? _selectedVideo;
@@ -43,6 +46,9 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
     _audioPlayer.dispose();
     super.dispose();
   }
+  // void _initializeConnection() async {
+  //   _controller._sw();
+  // }
 
   Future<void> _initializeRecorder() async {
     await _audioRecorder.openRecorder();
@@ -56,6 +62,45 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
     } else {
       print("Microphone permission granted.");
     }
+  }
+
+  void _saveStory() {
+    if (_titleController.text.isNotEmpty && _storyController.text.isNotEmpty) {
+      _controller.uploadData(
+        title: _titleController.text,
+        content: _storyController.text,
+        imageFile: _selectedImage,
+        audioFile: _recordedAudio,
+      );
+    } else {
+      Get.snackbar(
+        "Error",
+        "Title and story content cannot be empty.",
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+    }
+  }
+
+  Widget _statusConnectionWidget() {
+    return Obx(() => Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              _controller.isConnected.value ? Icons.wifi : Icons.wifi_off,
+              color: _controller.isConnected.value ? Colors.green : Colors.red,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              _controller.isConnected.value ? "Online" : "Offline",
+              style: TextStyle(
+                  color: _controller.isConnected.value
+                      ? Colors.green
+                      : Colors.red),
+            ),
+            // _controller._showConnectionSnackbar(_controller.isConnected.value);
+          ],
+        ));
   }
 
   Future<void> _pickMedia(String type, ImageSource source) async {
@@ -298,6 +343,9 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
           'Write Your Story',
           style: TextStyle(color: Colors.white),
         ),
+        actions: [
+          _statusConnectionWidget(), // Status koneksi
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -412,10 +460,24 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
                 filled: true,
                 fillColor: Colors.grey[900],
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),  
+                  borderRadius: BorderRadius.circular(10),
                 ),
               ),
             ),
+            const SizedBox(height: 20),
+            Obx(() {
+              if (_controller.isUploading.value) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              return ElevatedButton(
+                onPressed: _saveStory,
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.deepPurpleAccent,
+                ),
+                child: const Text('Upload Story'),
+              );
+            }),
           ],
         ),
       ),
