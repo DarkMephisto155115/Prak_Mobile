@@ -8,10 +8,12 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class WriteController extends GetxController {
   final RxBool isConnected = false.obs; // Tracks connectivity status
   final RxBool isUploading = false.obs; // Tracks upload process
+  var userId = ''.obs;
 
   final Connectivity _connectivity = Connectivity();
   final GetStorage _storage = GetStorage();
@@ -24,6 +26,29 @@ class WriteController extends GetxController {
     _initializeStorage();
     _monitorConnection();
     _checkLocalPendingUploads();
+    _getLocalData();
+  }
+
+  // void _getUserid() async {
+  //   String? localUserId = await getLocalData('userId');
+  //   if (localUserId == null) {
+  //     print("Tidak ada user ID di SharedPreferences");
+  //     return;
+  //   }
+  // }
+  Future<String?> _getLocalData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    String? localUserId = prefs.getString('userId');
+    if (localUserId == null) {
+      print("Tidak ada userId");
+    } else {
+      print("User id: $localUserId");
+      userId.value = localUserId;
+    }
+    return localUserId;
+
+    // return prefs.getString();
   }
 
   // Initialize GetStorage
@@ -124,7 +149,12 @@ class WriteController extends GetxController {
 
       if (isConnected.value) {
         // Upload to Firebase
-        await FirebaseFirestore.instance.collection('stories').add(data);
+        // await FirebaseFirestore.instance.collection('stories').add(data);
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId.value)
+            .collection('stories')
+            .add(data);
         Get.snackbar("Upload Successful", "Data uploaded to Firestore.",
             backgroundColor: Get.theme.primaryColor,
             colorText: Get.theme.colorScheme.onPrimary);
@@ -167,12 +197,16 @@ class WriteController extends GetxController {
                   .toList() ??
               [];
       if (pendingUploads.isNotEmpty) {
-        
         for (String jsonData in pendingUploads) {
           try {
             Map<String, dynamic> data = jsonDecode(jsonData);
             print(data);
-            await FirebaseFirestore.instance.collection('stories').add(data);
+            // await FirebaseFirestore.instance.collection('stories').add(data);
+            await FirebaseFirestore.instance
+                .collection('users')
+                .doc(userId.value)
+                .collection('stories')
+                .add(data);
           } catch (e) {
             print("Failed to upload pending data: $e");
           }
