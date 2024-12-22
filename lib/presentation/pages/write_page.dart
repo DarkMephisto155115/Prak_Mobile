@@ -31,6 +31,15 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
   bool _isRecording = false;
   bool _isAudioPlaying = false;
 
+  // Tambahkan variabel untuk kategori
+  final List<String> _categories = [
+    'Cerita Pendek',
+    'Novel',
+    'Puisi',
+    'Artikel'
+  ];
+  String _selectedCategory = 'Cerita Pendek';
+
   @override
   void initState() {
     super.initState();
@@ -46,9 +55,6 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
     _audioPlayer.dispose();
     super.dispose();
   }
-  // void _initializeConnection() async {
-  //   _controller._sw();
-  // }
 
   Future<void> _initializeRecorder() async {
     await _audioRecorder.openRecorder();
@@ -57,10 +63,9 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
   Future<void> requestMicrophonePermission() async {
     var status = await Permission.microphone.request();
     if (status.isDenied || status.isPermanentlyDenied) {
-      // Permission denied. Show a dialog or redirect user to settings.
-      print("Microphone permission is required for recording.");
+      // print("Izin mikrofon diperlukan untuk merekam.");
     } else {
-      print("Microphone permission granted.");
+      // print("Izin mikrofon diberikan.");
     }
   }
 
@@ -71,11 +76,12 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
         content: _storyController.text,
         imageFile: _selectedImage,
         audioFile: _recordedAudio,
+        category: _selectedCategory,
       );
     } else {
       Get.snackbar(
         "Error",
-        "Title and story content cannot be empty.",
+        "Judul dan konten cerita tidak boleh kosong.",
         backgroundColor: Colors.redAccent,
         colorText: Colors.white,
       );
@@ -98,7 +104,6 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
                       ? Colors.green
                       : Colors.red),
             ),
-            // _controller._showConnectionSnackbar(_controller.isConnected.value);
           ],
         ));
   }
@@ -257,7 +262,7 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
       );
     }
     return const Text(
-      'Tap to add an image or video',
+      'Ketuk untuk menambahkan gambar atau video',
       style: TextStyle(color: Colors.grey, fontSize: 16),
     );
   }
@@ -274,7 +279,7 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
                 const SizedBox(width: 10),
                 const Expanded(
                   child: Text(
-                    'Audio Recorded',
+                    'Audio Terekam',
                     style: TextStyle(color: Colors.white, fontSize: 16),
                   ),
                 ),
@@ -304,29 +309,20 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
       onTap: _recordedAudio == null ? _recordAudio : null,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        // decoration: BoxDecoration(
-        //   color: Colors.grey[900],
-        //   borderRadius: BorderRadius.circular(10),
-        // ),
         child: Row(
           children: [
-            // Icon(Icons.mic, color: Colors.orange, size: 30),
             const SizedBox(width: 10),
             const Expanded(
               child: Text(
-                'Tap to record audio',
+                'Ketuk untuk merekam audio',
                 style: TextStyle(color: Colors.white, fontSize: 16),
               ),
             ),
-            // GestureDetector(
-            // onTap: _recordAudio, // Start or stop recording
-            // child:
             Icon(
               _isRecording ? Icons.stop : Icons.mic,
               color: _isRecording ? Colors.red : Colors.orange,
               size: 30,
             ),
-            // ),
           ],
         ),
       ),
@@ -338,19 +334,52 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: Colors.deepPurple[700],
         title: const Text(
-          'Write Your Story',
+          'Tulis Ceritamu',
           style: TextStyle(color: Colors.white),
         ),
         actions: [
-          _statusConnectionWidget(), // Status koneksi
+          _statusConnectionWidget(),
         ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
+            // Dropdown untuk kategori
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              decoration: BoxDecoration(
+                color: Colors.grey[900],
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.deepPurpleAccent),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: _selectedCategory,
+                  icon: const Icon(Icons.arrow_drop_down,
+                      color: Colors.deepPurpleAccent),
+                  iconSize: 24,
+                  elevation: 16,
+                  style: const TextStyle(color: Colors.white),
+                  dropdownColor: Colors.grey[900],
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedCategory = newValue!;
+                    });
+                  },
+                  items:
+                      _categories.map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
             GestureDetector(
               onTap: () {
                 showModalBottomSheet(
@@ -365,7 +394,7 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
                         ListTile(
                           leading: const Icon(Icons.camera_alt,
                               color: Colors.deepPurple),
-                          title: const Text('Capture Image'),
+                          title: const Text('Ambil Gambar'),
                           onTap: () {
                             Navigator.pop(context);
                             _pickMedia('image', ImageSource.camera);
@@ -374,7 +403,7 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
                         ListTile(
                           leading:
                               const Icon(Icons.image, color: Colors.deepPurple),
-                          title: const Text('Select Image from Gallery'),
+                          title: const Text('Pilih Gambar dari Galeri'),
                           onTap: () {
                             Navigator.pop(context);
                             _pickMedia('image', ImageSource.gallery);
@@ -383,7 +412,7 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
                         ListTile(
                           leading: const Icon(Icons.videocam,
                               color: Colors.deepPurple),
-                          title: const Text('Capture Video'),
+                          title: const Text('Rekam Video'),
                           onTap: () {
                             Navigator.pop(context);
                             _pickMedia('video', ImageSource.camera);
@@ -392,7 +421,7 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
                         ListTile(
                           leading: const Icon(Icons.video_library,
                               color: Colors.deepPurple),
-                          title: const Text('Select Video from Gallery'),
+                          title: const Text('Pilih Video dari Galeri'),
                           onTap: () {
                             Navigator.pop(context);
                             _pickMedia('video', ImageSource.gallery);
@@ -408,10 +437,16 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(color: Colors.deepPurpleAccent),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Colors.deepPurple[700]!, Colors.deepPurple[300]!],
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.deepPurpleAccent.withOpacity(0.2),
                       blurRadius: 10,
+                      offset: const Offset(0, 5),
                     ),
                   ],
                 ),
@@ -440,7 +475,7 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
               controller: _titleController,
               style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
-                hintText: 'Title your Story Part',
+                hintText: 'Judul Ceritamu',
                 hintStyle: const TextStyle(color: Colors.grey),
                 filled: true,
                 fillColor: Colors.grey[900],
@@ -455,7 +490,7 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
               style: const TextStyle(color: Colors.white),
               maxLines: null,
               decoration: InputDecoration(
-                hintText: 'Write your story...',
+                hintText: 'Tulis ceritamu...',
                 hintStyle: const TextStyle(color: Colors.grey),
                 filled: true,
                 fillColor: Colors.grey[900],
@@ -473,41 +508,19 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
                 onPressed: _saveStory,
                 style: ElevatedButton.styleFrom(
                   foregroundColor: Colors.white,
-                  backgroundColor: Colors.deepPurpleAccent,
+                  backgroundColor: Colors.deepPurple[600],
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
                 ),
-                child: const Text('Upload Story'),
+                child:
+                    const Text('Unggah Cerita', style: TextStyle(fontSize: 18)),
               );
             }),
           ],
         ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.grey[900],
-        selectedItemColor: Colors.orange,
-        unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Tooltip(
-              message: 'Go Back',
-              child: Icon(Icons.arrow_back),
-            ),
-            label: 'Back',
-          ),
-          BottomNavigationBarItem(
-            icon: Tooltip(
-              message: 'Add Text',
-              child: Icon(Icons.format_align_left),
-            ),
-            label: 'Text',
-          ),
-          BottomNavigationBarItem(
-            icon: Tooltip(
-              message: 'Add Media',
-              child: Icon(Icons.image),
-            ),
-            label: 'Media',
-          ),
-        ],
       ),
     );
   }
