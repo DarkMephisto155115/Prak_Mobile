@@ -10,7 +10,7 @@ class ProfileScreen extends GetView<ProfileController> {
 
   Future<void> _showCurrentLocation() async {
     try {
-      // Cek izin lokasi
+      // Cek izin lokasi 
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
@@ -148,6 +148,7 @@ class ProfileScreen extends GetView<ProfileController> {
                   children: [
                     Text(
                       '2',
+                      // '${controller.listRead.length}',
                       style: TextStyle(color: Colors.white, fontSize: 20),
                     ),
                     Text(
@@ -156,15 +157,16 @@ class ProfileScreen extends GetView<ProfileController> {
                     ),
                   ],
                 ),
-                const SizedBox(width: 40),
+                SizedBox(width: 40),
                 Column(
-                  children: const [
+                  children: [
                     Text(
-                      '0',
+                      '${controller.following.value}',
+                      // '0',
                       style: TextStyle(color: Colors.white, fontSize: 20),
                     ),
                     Text(
-                      'Followers',
+                      'Follwing',
                       style: TextStyle(color: Colors.grey, fontSize: 16),
                     ),
                   ],
@@ -183,6 +185,7 @@ class ProfileScreen extends GetView<ProfileController> {
                 ),
             ),
             const SizedBox(height: 20),
+            // story yang user publish
             // Story card
             Expanded(
               child: ListView(

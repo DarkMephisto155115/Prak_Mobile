@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:terra_brain/presentation/controllers/LoginController.dart';
 import 'package:terra_brain/presentation/controllers/best_seller_list_controller.dart';
+import 'package:terra_brain/presentation/controllers/edit_profile_controller.dart';
 import 'package:terra_brain/presentation/controllers/favorites_controller.dart';
 import 'package:terra_brain/presentation/controllers/gps_controller.dart';
 import 'package:terra_brain/presentation/controllers/profile_controller.dart';
@@ -82,6 +83,15 @@ class GpsBinding extends Bindings {
   void dependencies() {
     Get.lazyPut<GpsController>(
       () => GpsController(),
+    );
+  }
+}
+
+class EditProfileBinding extends Bindings {
+  @override
+  void dependencies() {
+    Get.lazyPut<EditProfileController>(
+      () => EditProfileController(),
     );
   }
 }

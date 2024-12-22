@@ -7,91 +7,168 @@ class LoginPage extends GetView<LoginController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextField(
-              controller: controller.emailController,
-              decoration: const InputDecoration(
-                labelText: 'Email or username',
-                labelStyle: TextStyle(color: Colors.white),
-                border: OutlineInputBorder(),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.white),
-                ),
+      resizeToAvoidBottomInset: false,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Colors.black, Colors.deepPurple.shade900],
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top,
               ),
-              style: TextStyle(color: Colors.white),
-            ),
-            const SizedBox(height: 16),
-            Obx(() => TextField(
-              controller: controller.passwordController,
-              obscureText: controller.isPasswordHidden.value,
-              decoration: InputDecoration(
-                labelText: 'Password',
-                labelStyle: TextStyle(color: Colors.white),
-                border: OutlineInputBorder(),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.white),
-                ),
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    controller.isPasswordHidden.value
-                        ? Icons.visibility_off
-                        : Icons.visibility,
-                    color: Colors.white,
+              child: IntrinsicHeight(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(24.0, 24.0, 24.0, 24.0 + MediaQuery.of(context).viewInsets.bottom),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      TweenAnimationBuilder(
+                        tween: Tween<double>(begin: 0, end: 1),
+                        duration: Duration(milliseconds: 800),
+                        builder: (context, double value, child) {
+                          return Opacity(
+                            opacity: value,
+                            child: Padding(
+                              padding: EdgeInsets.only(top: value * 20),
+                              child: child,
+                            ),
+                          );
+                        },
+                        child: const Text(
+                          'Selamat Datang',
+                          style: TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 40),
+                      _buildTextField(
+                        controller: controller.emailController,
+                        label: 'Email',
+                        icon: Icons.person,
+                      ),
+                      const SizedBox(height: 20),
+                      Obx(() => _buildTextField(
+                        controller: controller.passwordController,
+                        label: 'Kata Sandi',
+                        icon: Icons.lock,
+                        isPassword: true,
+                        isPasswordHidden: controller.isPasswordHidden.value,
+                        togglePasswordVisibility: controller.togglePasswordVisibility,
+                      )),
+                      const SizedBox(height: 30),
+                      _buildLoginButton(),
+                      const SizedBox(height: 20),
+                      _buildForgotPasswordButton(),
+                      // const SizedBox(height: 1),
+                      _buildSignUpButton(),
+                    ],
                   ),
-                  onPressed: controller.togglePasswordVisibility,
                 ),
               ),
-              style: const TextStyle(color: Colors.white),
-            )),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                controller.login();
-                // Get.toNamed(Routes.HOME);
-              },
-              child: Text('Log in'),
-              style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.black, backgroundColor: Colors.white,
-              ),
             ),
-            // SizedBox(height: 16),
-            // ElevatedButton(
-            //   onPressed: () {
-            //     Get.toNamed(Routes.REGISTRATION);
-            //   },
-            //   child: Text('Register'),
-            //   style: ElevatedButton.styleFrom(
-            //     foregroundColor: Colors.black, backgroundColor: Colors.white,
-            //   ),
-            // ),
-            const SizedBox(height: 16),
-            TextButton(
-              onPressed: () {
-                Get.snackbar('Forgot Password', 'Redirect to forgot password');
-                // Get.toNamed(Routes.REGISTRATION);
-              },
-              child: Text('Forgot password?', style: TextStyle(color: Colors.white)),
-            ),
-            const SizedBox(height: 16),
-            TextButton(
-              onPressed: () {
-                Get.toNamed(Routes.REGISTRATION);
-                // Get.snackbar('Sign Up', 'Redirect to sign up');
-              },
-              child: Text("Don't have an account? Sign up", style: TextStyle(color: Colors.white)),
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    bool isPassword = false,
+    bool isPasswordHidden = true,
+    VoidCallback? togglePasswordVisibility,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(30),
+      ),
+      child: TextField(
+        controller: controller,
+        obscureText: isPassword ? isPasswordHidden : false,
+        style: const TextStyle(color: Colors.white),
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: const TextStyle(color: Colors.white70),
+          prefixIcon: Icon(icon, color: Colors.white70),
+          suffixIcon: isPassword
+              ? IconButton(
+                  icon: Icon(
+                    isPasswordHidden ? Icons.visibility_off : Icons.visibility,
+                    color: Colors.white70,
+                  ),
+                  onPressed: togglePasswordVisibility,
+                )
+              : null,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(30),
+            borderSide: BorderSide.none,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoginButton() {
+    return Container(
+      width: double.infinity,
+      height: 56,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(30),
+        gradient: const LinearGradient(
+          colors: [Colors.purpleAccent, Colors.deepPurple],
+        ),
+      ),
+      child: ElevatedButton(
+        onPressed: () {
+          controller.login();
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+        ),
+        child: const Text(
+          'Masuk',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white70) ,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildForgotPasswordButton() {
+    return TextButton(
+      onPressed: () {
+        Get.snackbar('Lupa Kata Sandi', 'Mengarahkan ke halaman lupa kata sandi');
+      },
+      child: const Text(
+        'Lupa kata sandi?',
+        style: TextStyle(color: Colors.white70),
+      ),
+    );
+  }
+
+  Widget _buildSignUpButton() {
+    return TextButton(
+      onPressed: () {
+        Get.offNamed(Routes.REGISTRATION);
+      },
+      child: const Text(
+        "Belum punya akun? Daftar sekarang",
+        style: TextStyle(color: Colors.white70),
+      ),
+    );
+  }
 }
+

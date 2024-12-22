@@ -26,7 +26,8 @@ class SettingPage extends GetView<SettingController> {
             ),
             onTap: () {
               // Tambahkan navigasi ke halaman Edit Profile di sini
-              print("Navigate to Edit Profile");
+              // print("Navigate to Edit Profile");
+              Get.toNamed(Routes.Edit);
             },
           ),
           Divider(color: Colors.grey[800]),
