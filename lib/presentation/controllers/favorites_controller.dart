@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 
 class FavoritesController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+
   final RxList<Map<String, dynamic>> favoriteItems = <Map<String, dynamic>>[].obs;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -64,6 +65,7 @@ class FavoritesController extends GetxController {
       Get.snackbar("Error", "Failed to remove favorite: $e");
     }
   }
+
 
   Future<void> removeStory(String id) async {
     await deleteFavorite(id);

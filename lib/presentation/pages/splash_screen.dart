@@ -23,7 +23,6 @@ class SplashScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     checkLoginStatus();
-
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(

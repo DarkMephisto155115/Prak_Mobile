@@ -25,7 +25,6 @@ class ProfileController extends GetxController {
     super.onInit();
     _getUserData();
     fetchStories();
-  }
 
   Future<void> _getUserData() async {
     String? localUserId = await getLocalData('userId');
@@ -43,11 +42,11 @@ class ProfileController extends GetxController {
     if (userData != null) {
       name.value = userData['name'] ?? '';
       username.value = userData['username'] ?? '';
-      imagesURL.value = userData['imagesURL'] ?? 'assets/images/default_profile.jpeg';
+      imagesURL.value =
+          userData['imagesURL'] ?? 'assets/images/default_profile.jpeg';
       coins.value = userData['coins'] ?? 0;
       followers.value = userData['followers'] ?? 0;
       following.value = userData['following'] ?? 0;
-
     } else {
       print("Data user tidak ditemukan di Firestore");
     }

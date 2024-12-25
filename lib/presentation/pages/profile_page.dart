@@ -8,8 +8,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-
-
 class ProfileScreen extends GetView<ProfileController> {
   const ProfileScreen({Key? key}) : super(key: key);
 
@@ -323,5 +321,4 @@ class ProfileScreen extends GetView<ProfileController> {
       return []; // Return an empty list on error
     }
   }
-
 }
