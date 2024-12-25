@@ -73,7 +73,7 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
     if (_titleController.text.isNotEmpty && _storyController.text.isNotEmpty) {
       _controller.uploadData(
         title: _titleController.text,
-        content: _storyController.text,
+        content: _storyController.text.replaceAll('\n', '\\n'),
         imageFile: _selectedImage,
         audioFile: _recordedAudio,
         category: _selectedCategory,
@@ -485,17 +485,21 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
               ),
             ),
             const SizedBox(height: 20),
-            TextField(
-              controller: _storyController,
-              style: const TextStyle(color: Colors.white),
-              maxLines: null,
-              decoration: InputDecoration(
-                hintText: 'Tulis ceritamu...',
-                hintStyle: const TextStyle(color: Colors.grey),
-                filled: true,
-                fillColor: Colors.grey[900],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
+            Scrollbar(
+              child: SingleChildScrollView(
+                child: TextField(
+                  controller: _storyController,
+                  style: const TextStyle(color: Colors.white),
+                  maxLines: null,
+                  decoration: InputDecoration(
+                    hintText: 'Tulis ceritamu...',
+                    hintStyle: const TextStyle(color: Colors.grey),
+                    filled: true,
+                    fillColor: Colors.grey[900],
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
                 ),
               ),
             ),

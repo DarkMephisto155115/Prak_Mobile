@@ -471,7 +471,8 @@ class RecommendedStories extends StatelessWidget {
                   );
                 }),
                 onTap: () {
-                  Get.to(() => WebViewScreen(url: story['url']));
+                  // Navigasi ke StoryPage dan mengirimkan ID
+                  Get.toNamed(Routes.READ, arguments: {'id': story['id']});
                 },
               ),
             ),

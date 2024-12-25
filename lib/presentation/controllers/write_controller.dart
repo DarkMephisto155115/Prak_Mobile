@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
 // import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:path_provider/path_provider.dart';
@@ -100,6 +101,19 @@ class WriteController extends GetxController {
       isConnected.value = conection;
       // print("isConnected awal: ${isConnected.value}");
       _showConnectionSnackbar(isConnected.value);
+    }
+  }
+
+  Future<String> _uploadFileToStorage(File file, String path) async {
+    try {
+      final Reference storageRef = FirebaseStorage.instance.ref().child(path);
+      final UploadTask uploadTask = storageRef.putFile(file);
+      final TaskSnapshot snapshot = await uploadTask;
+      final String downloadUrl = await snapshot.ref.getDownloadURL();
+      return downloadUrl;
+    } catch (e) {
+      // print("Error uploading file to Firebase Storage: $e");
+      rethrow;
     }
   }
 

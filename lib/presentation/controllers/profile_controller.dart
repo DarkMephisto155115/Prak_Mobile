@@ -17,6 +17,7 @@ class ProfileController extends GetxController {
   var stories = <Map<String, dynamic>>[].obs;
 
   var length = 0.obs;
+  var length = 0.obs;
 
 
   @override
