@@ -4,6 +4,8 @@ import '../routes/app_pages.dart';
 import '../controllers/LoginController.dart';
 
 class LoginPage extends GetView<LoginController> {
+  final LoginController controller = Get.put(LoginController());
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
