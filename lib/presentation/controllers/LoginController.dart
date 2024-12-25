@@ -26,11 +26,12 @@ class LoginController extends GetxController {
         final SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setBool('isLoggedIn', true);
         await prefs.setString('userId', userCredential.user!.uid);
+        print(userCredential.user!.uid);
 
-        Get.snackbar('Success', 'Logged in successfully',  backgroundColor: Colors.green, colorText: Colors.white);
+        Get.snackbar('Success', 'Logged in successfully',
+            backgroundColor: Colors.green, colorText: Colors.white);
 
-        Get.toNamed(Routes.HOME);
-        // Get.offAllNamed("/login"); 
+        Get.offAllNamed(Routes.HOME);
       } on FirebaseAuthException catch (e) {
         String message;
         if (e.code == 'user-not-found') {

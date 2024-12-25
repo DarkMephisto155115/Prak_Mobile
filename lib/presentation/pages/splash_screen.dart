@@ -22,7 +22,7 @@ class SplashScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     checkLoginStatus(); // Panggil checkLoginStatus saat halaman dibangun
 
-    return Scaffold(
+    return const Scaffold(
       backgroundColor: Colors.white,
       body: Center(
         child: CircularProgressIndicator(),

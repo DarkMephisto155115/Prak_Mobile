@@ -12,8 +12,9 @@ class SettingController extends GetxController {
       await _auth.signOut();
       
       final SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.remove('isLoggedIn');
-      await prefs.remove('userId');
+      await prefs.clear();
+      // await prefs.remove('isLoggedIn');
+      // await prefs.remove('userId');
       
       Get.offAllNamed(Routes.LOGIN);
 

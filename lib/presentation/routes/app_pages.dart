@@ -2,6 +2,7 @@
 import 'package:get/get.dart';
 import 'package:terra_brain/presentation/bindings/main_bindings.dart';
 import 'package:terra_brain/presentation/pages/API_page.dart';
+import 'package:terra_brain/presentation/pages/edit_profile_page.dart';
 import 'package:terra_brain/presentation/pages/favorite_page.dart';
 import 'package:terra_brain/presentation/pages/gps_page.dart';
 import 'package:terra_brain/presentation/pages/home_page.dart';
@@ -11,7 +12,6 @@ import 'package:terra_brain/presentation/pages/registration_page.dart';
 import 'package:terra_brain/presentation/pages/setting_page.dart';
 import 'package:terra_brain/presentation/pages/splash_screen.dart';
 import '../../presentation/pages/login_page.dart';
-// import '../pages/cam_impementation.dart';
 import '../pages/write_page.dart';
 
 part 'app_routes.dart';
@@ -22,12 +22,12 @@ class AppPages {
   static final routes = [
     GetPage(
       name: Routes.HOME,
-      page: () => HomePage(),
+      page: () => const HomePage(),
 
     ),
     GetPage(
       name: Routes.PROFILE,
-      page: () => ProfileScreen(),
+      page: () => const ProfileScreen(),
       binding: ProfileBinding()
     ),
     GetPage(
@@ -36,7 +36,7 @@ class AppPages {
     ),
     GetPage(
       name: Routes.REGISTRATION,
-      page: () => RegistrationPage(),
+      page: () => const RegistrationPage(),
       binding: RegisterBinding(),
     ),
     GetPage(
@@ -66,13 +66,18 @@ class AppPages {
     ),
     GetPage(
       name: Routes.WRITE,
-      page: () => WriteStoryPage(),
+      page: () => const WriteStoryPage(),
       binding: SensorBinding(),
     ),
     GetPage(
       name: Routes.GPS,
-      page: () => GpsPage(),
+      page: () => const GpsPage(),
       binding: GpsBinding(),
+    ),
+    GetPage(
+      name: Routes.Edit,
+      page: () => EditProfilePage(),
+      binding: EditProfileBinding(),
     ),
   ];
 }

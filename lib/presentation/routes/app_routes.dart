@@ -13,4 +13,5 @@ abstract class Routes {
   static const FAVORITE = '/favorite';
   static const WRITE = '/write';
   static const GPS = '/gps';
+  static const Edit = '/edit_profile';
 }

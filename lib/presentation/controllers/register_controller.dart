@@ -1,10 +1,7 @@
-import 'dart:io';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:image_picker/image_picker.dart';
 
 class RegistrationController extends GetxController {
   var name = ''.obs;
@@ -13,21 +10,11 @@ class RegistrationController extends GetxController {
   var password = ''.obs;
   var birthDate = ''.obs;
   var pronouns = ''.obs;
-  var profileImagePath = ''.obs;
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final ImagePicker _picker = ImagePicker();
 
   TextEditingController birthDateController = TextEditingController();
-  
- 
-  Future<void> pickImage() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-    if (image != null) {
-      profileImagePath.value = image.path; // Menyimpan path gambar
-    }
-  }
 
   Future<void> register() async {
     if (name.value.isEmpty ||
@@ -37,8 +24,9 @@ class RegistrationController extends GetxController {
         birthDate.value.isEmpty) {
       throw Exception('Please fill in all fields');
     }
-    if (profileImagePath.isNotEmpty) {
-      await uploadProfileImage();
+    bool usernameExists = await _checkUsernameExists(username.value);
+    if (usernameExists) {
+      throw Exception('Username is already taken');
     }
     try {
       UserCredential userCredential =
@@ -55,36 +43,41 @@ class RegistrationController extends GetxController {
         'username': username.value,
         'birthDate': birthDate.value,
         'pronouns': pronouns.value,
-        "imageURL": "",
         "coins": 0,
-        "folowers": 0,
-        "dolowing": 0,
+        "followers": 0,
+        "following": 0,
       });
 
       Get.snackbar('Success', 'User registered successfully');
       Get.toNamed("/login");
-    } catch (e) {
-      Get.snackbar('Error', e.toString());
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'email-already-in-use') {
+        throw Exception('The account already exists for that email.');
+      } else if (e.code == 'weak-password') {
+        throw Exception('The password is too weak.');
+      } else {
+        throw Exception('Registration failed: ${e.message}');
+      }
     }
   }
 
-  Future<void> uploadProfileImage() async {
-    File file = File(profileImagePath.value);
+  Future<bool> _checkUsernameExists(String username) async {
     try {
-      // Menentukan referensi penyimpanan
-      Reference ref = FirebaseStorage.instance
-          .ref()
-          .child('profile_images/${DateTime.now().millisecondsSinceEpoch}.jpg');
+      var snapshot = await _firestore
+          .collection('users')
+          .where('username', isEqualTo: username)
+          .get();
 
-      // Mengunggah file
-      await ref.putFile(file);
-
-      String downloadUrl = await ref.getDownloadURL();
-
-      print('Image uploaded: $downloadUrl');
+      return snapshot.docs.isNotEmpty; 
     } catch (e) {
-      print('Error uploading image: $e');
-      throw e; 
+      print("Error checking username: $e");
+      return false;
     }
+  }
+
+  @override
+  void onClose() {
+    birthDateController.dispose();
+    super.onClose();
   }
 }
