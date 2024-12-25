@@ -8,7 +8,7 @@
 
 
     <application
-        android:label="terra_brain"
+        android:label="Novelku"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
