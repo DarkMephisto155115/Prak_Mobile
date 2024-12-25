@@ -14,12 +14,17 @@ class ProfileController extends GetxController {
   var coins = 0.obs;
   var followers = 0.obs;
   var following = 0.obs;
+  var stories = <Map<String, dynamic>>[].obs;
+
+ var length = 0.obs;
+
+
 
   @override
   void onInit() {
     super.onInit();
-    _getUserData(); 
-  }
+    _getUserData();
+    fetchStories();
 
   Future<void> _getUserData() async {
     String? localUserId = await getLocalData('userId');
@@ -71,6 +76,24 @@ class ProfileController extends GetxController {
     } catch (e) {
       print("Error fetching data: $e");
       return null;
+    }
+  }
+
+  Future<void> fetchStories() async {
+    try {
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('stories')
+          .where('writerId', isEqualTo: userID.value)
+          .get();
+
+      // Update the reactive list with fetched stories
+      stories.value = querySnapshot.docs
+          .map((doc) => {'id': doc.id, ...doc.data() as Map<String, dynamic>})
+          .toList();
+
+
+    } catch (e) {
+      print('Error fetching stories: $e');
     }
   }
 }

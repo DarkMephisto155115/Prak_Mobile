@@ -5,63 +5,69 @@ import 'package:get/get.dart';
 class FavoritesController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
+  final RxList<Map<String, dynamic>> favoriteItems = <Map<String, dynamic>>[].obs;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  var id = ''.obs;
+  // var likedStatus = false.obs
+
+  @override
+  void onInit() {
+    super.onInit();
+    _listenToFavorites();
+  }
+
   CollectionReference get _userFavorites {
     final user = _auth.currentUser;
     if (user == null) {
       throw Exception("User is not logged in");
     }
-    return FirebaseFirestore.instance
+    return _firestore
         .collection('users')
         .doc(user.uid)
-        .collection('Favorite');
+        .collection('favorites');
   }
 
-  Stream<QuerySnapshot> getFavoritesStream() {
-    return _userFavorites.snapshots();
+  void _listenToFavorites() {
+    _userFavorites.snapshots().listen((snapshot) {
+      favoriteItems.value = snapshot.docs.map((doc) => {
+        'id': doc.id,
+        ...doc.data() as Map<String, dynamic>,
+      }).toList();
+    });
   }
 
-  Future<void> addFavorite(String? title, String? author, String? description) async {
-    if (title == null || title.isEmpty || author == null || author.isEmpty || description == null || description.isEmpty) {
-      Get.snackbar("Error", "All fields must be filled out");
-      return;
-    }
-
+  Future<void> addFavorite(String id, String title, String author, String description) async {
     try {
-      await _userFavorites.add({
+      await _userFavorites.doc(id).set({
         'title': title,
         'author': author,
         'description': description,
+        'timestamp': FieldValue.serverTimestamp(),
       });
-      Get.snackbar("Success", "Favorite added successfully");
+      await _firestore.collection('stories').doc(id).update({
+      'favorite': FieldValue.increment(1),
+    });
+      Get.snackbar("Success", "$title added to Favorites");
     } catch (e) {
       Get.snackbar("Error", "Failed to add favorite: $e");
-    }
-  }
-
-  Future<void> updateFavorite(String id, String? title, String? author, String? description) async {
-    if (title == null || title.isEmpty || author == null || author.isEmpty || description == null || description.isEmpty) {
-      Get.snackbar("Error", "All fields must be filled out");
-      return;
-    }
-
-    try {
-      await _userFavorites.doc(id).update({
-        'title': title,
-        'author': author,
-        'description': description,
-      });
-      Get.snackbar("Success", "Favorite updated successfully");
-    } catch (e) {
-      Get.snackbar("Error", "Failed to update favorite: $e");
     }
   }
 
   Future<void> deleteFavorite(String id) async {
     try {
       await _userFavorites.doc(id).delete();
-      Get.snackbar("Success", "Favorite deleted successfully");
+      await _firestore.collection('stories').doc(id).update({
+        'favorite': FieldValue.increment(-1),
+      });
+      Get.snackbar("Success", "Favorite removed");
     } catch (e) {
-      Get.snackbar("Error", "Failed to delete favorite: $e");
+      Get.snackbar("Error", "Failed to remove favorite: $e");
     }
+  }
+
+
+  Future<void> removeStory(String id) async {
+    await deleteFavorite(id);
   }
 }
