@@ -1,11 +1,23 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 
 class FavoritesController extends GetxController {
-  final CollectionReference favorites = FirebaseFirestore.instance.collection('favorites');
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  CollectionReference get _userFavorites {
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw Exception("User is not logged in");
+    }
+    return FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('Favorite');
+  }
 
   Stream<QuerySnapshot> getFavoritesStream() {
-    return favorites.snapshots();
+    return _userFavorites.snapshots();
   }
 
   Future<void> addFavorite(String? title, String? author, String? description) async {
@@ -15,7 +27,7 @@ class FavoritesController extends GetxController {
     }
 
     try {
-      await favorites.add({
+      await _userFavorites.add({
         'title': title,
         'author': author,
         'description': description,
@@ -33,7 +45,7 @@ class FavoritesController extends GetxController {
     }
 
     try {
-      await favorites.doc(id).update({
+      await _userFavorites.doc(id).update({
         'title': title,
         'author': author,
         'description': description,
@@ -46,7 +58,7 @@ class FavoritesController extends GetxController {
 
   Future<void> deleteFavorite(String id) async {
     try {
-      await favorites.doc(id).delete();
+      await _userFavorites.doc(id).delete();
       Get.snackbar("Success", "Favorite deleted successfully");
     } catch (e) {
       Get.snackbar("Error", "Failed to delete favorite: $e");
