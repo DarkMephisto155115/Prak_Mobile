@@ -205,7 +205,7 @@ class HomePage extends StatelessWidget {
                         _buildSectionTitle('Cerita Populer'),
                         StoryCarousel(),
                         _buildSectionTitle('Kategori'),
-                        CategoryList(),
+                        CategoryList(onCategoryTap: (String category) {  },),
                         _buildSectionTitle('Rekomendasi untuk Anda'),
                         RecommendedStories(
                             favoritesController: favoritesController),
@@ -357,7 +357,7 @@ class StoryCarousel extends StatelessWidget {
 }
 
 class CategoryList extends StatelessWidget {
-  CategoryList({Key? key}) : super(key: key);
+  CategoryList({Key? key, required this.onCategoryTap}) : super(key: key);
 
   final void Function(String category) onCategoryTap;
   final List<String> categories = [
@@ -471,7 +471,8 @@ class RecommendedStories extends StatelessWidget {
                   );
                 }),
                 onTap: () {
-                  Get.to(() => WebViewScreen(url: story['url']));
+                  // Navigasi ke StoryPage dan mengirimkan ID
+                  Get.toNamed(Routes.READ, arguments: {'id': story['id']});
                 },
               ),
             ),

@@ -16,7 +16,7 @@ class ProfileController extends GetxController {
   var following = 0.obs;
   var stories = <Map<String, dynamic>>[].obs;
 
- var length = 0.obs;
+  var length = 0.obs;
 
 
 
@@ -25,7 +25,8 @@ class ProfileController extends GetxController {
     super.onInit();
     _getUserData();
     fetchStories();
-
+  }
+  
   Future<void> _getUserData() async {
     String? localUserId = await getLocalData('userId');
     print("user Id: $localUserId");
