@@ -8,25 +8,40 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class WriteController extends GetxController {
-  final RxBool isConnected = false.obs; // Tracks connectivity status
-  final RxBool isUploading = false.obs; // Tracks upload process
+  final RxBool isConnected = false.obs;
+  final RxBool isUploading = false.obs;
+  var userId = ''.obs;
 
   final Connectivity _connectivity = Connectivity();
   final GetStorage _storage = GetStorage();
-  // late StreamSubscription<ConnectivityResult> _connectivitySubscription;
   late StreamSubscription<List<ConnectivityResult>> _connectivitySubscription;
 
   @override
   void onInit() {
     super.onInit();
+    _checkInitialConnection();
     _initializeStorage();
     _monitorConnection();
     _checkLocalPendingUploads();
+    _getLocalData();
   }
 
-  // Initialize GetStorage
+  Future<String?> _getLocalData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    String? localUserId = prefs.getString('userId');
+    if (localUserId == null) {
+      // print("Tidak ada userId");
+    } else {
+      // print("User id: $localUserId");
+      userId.value = localUserId;
+    }
+    return localUserId;
+  }
+
   Future<void> _initializeStorage() async {
     await GetStorage.init();
   }
@@ -39,13 +54,13 @@ class WriteController extends GetxController {
         bool isConnectedNow = true;
         isConnected.value = isConnectedNow;
         _showConnectionSnackbar(isConnected.value);
-        print("anda kembali online");
+        // print("anda kembali online");
         _checkLocalPendingUploads();
       } else {
         bool isConnectedNow = false;
         isConnected.value = isConnectedNow;
         _showConnectionSnackbar(isConnected.value);
-        print("anda ofline");
+        // print("anda ofline");
       }
     });
   }
@@ -70,11 +85,23 @@ class WriteController extends GetxController {
     }
   }
 
-  // Future<void> _checkInitialConnection() async {
-  //   var result = await _connectivity.checkConnectivity();
-  //   isConnected.value = result == ConnectivityResult.mobile ||
-  //       result == ConnectivityResult.wifi;
-  // }
+  Future<void> _checkInitialConnection() async {
+    // print("Memeriksa koneksi awal...");
+    var result = await _connectivity.checkConnectivity();
+    // print("Koneksi awal: $result");
+    if (result.contains(ConnectivityResult.wifi) ||
+        result.contains(ConnectivityResult.mobile)) {
+      bool conection = true;
+      isConnected.value = conection;
+      // print("isConnected awal: ${isConnected.value}");
+      _showConnectionSnackbar(isConnected.value);
+    } else {
+      bool conection = false;
+      isConnected.value = conection;
+      // print("isConnected awal: ${isConnected.value}");
+      _showConnectionSnackbar(isConnected.value);
+    }
+  }
 
   // Save Media Locally and Return File Path
   Future<String> saveFileLocally(File file, String filename) async {
@@ -84,7 +111,7 @@ class WriteController extends GetxController {
       await file.copy(filePath);
       return filePath;
     } catch (e) {
-      print("Error saving file locally: $e");
+      // print("Error saving file locally: $e");
       rethrow;
     }
   }
@@ -93,6 +120,7 @@ class WriteController extends GetxController {
   Future<void> uploadData({
     required String title,
     required String content,
+    required String category,
     File? imageFile,
     File? audioFile,
   }) async {
@@ -117,6 +145,8 @@ class WriteController extends GetxController {
       Map<String, dynamic> data = {
         "title": title,
         "content": content,
+        "writerId": userId.value,
+        "category": category,
         "imagePath": imagePath,
         "audioPath": audioPath,
         "createdAt": createdAt,
@@ -130,7 +160,7 @@ class WriteController extends GetxController {
             colorText: Get.theme.colorScheme.onPrimary);
       } else {
         _saveDataLocally(data);
-        print("yang disimpan di local untuk pending $data");
+        // print("yang disimpan di local untuk pending $data");
         Get.snackbar("No Internet", "Data saved locally for later upload.",
             backgroundColor: Get.theme.disabledColor,
             colorText: Get.theme.colorScheme.onError);
@@ -139,7 +169,7 @@ class WriteController extends GetxController {
       Get.snackbar("Error", "Failed to upload data: $e",
           backgroundColor: Get.theme.disabledColor,
           colorText: Get.theme.colorScheme.onError);
-      print("error: $e");
+      // print("error: $e");
     } finally {
       isUploading.value = false;
     }
@@ -153,8 +183,8 @@ class WriteController extends GetxController {
                 .toList() ??
             [];
     pendingUploads.add(jsonEncode(data));
-    print("data yang disimpan di local: $data");
-    print("data ditulis dib local sementara");
+    // print("data yang disimpan di local: $data");
+    // print("data ditulis dib local sementara");
     _storage.write('pending_uploads', pendingUploads);
   }
 
@@ -167,14 +197,13 @@ class WriteController extends GetxController {
                   .toList() ??
               [];
       if (pendingUploads.isNotEmpty) {
-        
         for (String jsonData in pendingUploads) {
           try {
             Map<String, dynamic> data = jsonDecode(jsonData);
-            print(data);
+            // print(data);
             await FirebaseFirestore.instance.collection('stories').add(data);
           } catch (e) {
-            print("Failed to upload pending data: $e");
+            // print("Failed to upload pending data: $e");
           }
         }
         _storage.remove('pending_uploads');
