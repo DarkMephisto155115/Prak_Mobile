@@ -14,11 +14,17 @@ class ProfileController extends GetxController {
   var coins = 0.obs;
   var followers = 0.obs;
   var following = 0.obs;
+  var stories = <Map<String, dynamic>>[].obs;
+
+ var length = 0.obs;
+
+
 
   @override
   void onInit() {
     super.onInit();
-    _getUserData(); 
+    _getUserData();
+    fetchStories();
   }
 
   Future<void> _getUserData() async {
@@ -37,11 +43,11 @@ class ProfileController extends GetxController {
     if (userData != null) {
       name.value = userData['name'] ?? '';
       username.value = userData['username'] ?? '';
-      imagesURL.value =
-          userData['imagesURL'] ?? 'assets/images/default_profile.jpeg';
+      imagesURL.value = userData['imagesURL'] ?? 'assets/images/default_profile.jpeg';
       coins.value = userData['coins'] ?? 0;
       followers.value = userData['followers'] ?? 0;
       following.value = userData['following'] ?? 0;
+
     } else {
       print("Data user tidak ditemukan di Firestore");
     }
@@ -71,6 +77,24 @@ class ProfileController extends GetxController {
     } catch (e) {
       print("Error fetching data: $e");
       return null;
+    }
+  }
+
+  Future<void> fetchStories() async {
+    try {
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('stories')
+          .where('writerId', isEqualTo: userID.value)
+          .get();
+
+      // Update the reactive list with fetched stories
+      stories.value = querySnapshot.docs
+          .map((doc) => {'id': doc.id, ...doc.data() as Map<String, dynamic>})
+          .toList();
+
+
+    } catch (e) {
+      print('Error fetching stories: $e');
     }
   }
 }

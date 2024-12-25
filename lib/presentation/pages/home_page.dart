@@ -1,22 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:url_launcher/url_launcher_string.dart';
 import 'package:geolocator/geolocator.dart';
-import 'dart:io';
-
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import '../routes/app_pages.dart';
 import 'favorite_page.dart';
 import 'webview_page.dart';
 import 'package:terra_brain/presentation/controllers/home_controller.dart';
+import 'package:terra_brain/presentation/controllers/favorites_controller.dart';
 
 class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+  const HomePage({Key? key}) : super(key: key);
 
   Future<void> _openGoogleMaps() async {
     try {
-      // Cek izin lokasi
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
@@ -25,37 +22,26 @@ class HomePage extends StatelessWidget {
         }
       }
 
-      // Pastikan lokasi aktif
       if (permission == LocationPermission.deniedForever) {
         throw 'Izin lokasi ditolak secara permanen.';
       }
 
-      // Dapatkan lokasi pengguna
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
 
-      // Format URL untuk Google Maps
       final Uri googleMapsUrl = Uri.parse(
           'https://www.google.com/maps/search/?api=1&query=${position.latitude},${position.longitude}');
 
-      print('Generated URL: $googleMapsUrl');
-
-      // Luncurkan URL di aplikasi eksternal atau fallback ke browser
       if (await canLaunchUrl(googleMapsUrl)) {
         await launchUrl(
           googleMapsUrl,
           mode: LaunchMode.externalApplication,
         );
       } else {
-        print('Cannot open Google Maps, fallback to browser');
-        await launchUrl(
-          googleMapsUrl,
-          mode: LaunchMode.inAppWebView,
-        );
+        throw 'Tidak dapat membuka Google Maps.';
       }
     } catch (e) {
-      // Tampilkan pesan kesalahan
       Get.snackbar(
         'Error',
         e.toString(),
@@ -63,142 +49,166 @@ class HomePage extends StatelessWidget {
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
-      print('Error: $e');
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
-    final ConnectivityController connectivityController = Get.put(ConnectivityController());
-    return MaterialApp(
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: Colors.black,
-        appBarTheme: AppBarTheme(
-          color: Colors.grey[900],
+    final FavoritesController favoritesController =
+        Get.put(FavoritesController());
+    final HomeController homeController = Get.put(HomeController());
+
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Colors.deepPurple.shade900, Colors.black],
+          ),
         ),
-        bottomNavigationBarTheme: BottomNavigationBarThemeData(
-          backgroundColor: Colors.grey[850],
-          selectedItemColor: Colors.orange,
-          unselectedItemColor: Colors.grey,
-        ),
-        textTheme: TextTheme(
-          bodyLarge: TextStyle(color: Colors.white),
-          bodyMedium: TextStyle(color: Colors.white),
-        ),
-      ),
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Wattpad'),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.search),
-              onPressed: () {},
-            ),
-          ],
-        ),
-        body: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Text(
-                  'Popular Stories',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        child: SafeArea(
+          child: CustomScrollView(
+            slivers: [
+              SliverAppBar(
+                expandedHeight: 150.0,
+                floating: false,
+                pinned: true,
+                flexibleSpace: FlexibleSpaceBar(
+                  title: Text('novelku', style: TextStyle(color: Colors.white)),
+                  background: Image.network(
+                    'https://picsum.photos/800/400',
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                actions: [
+                  IconButton(
+                    icon: Icon(Icons.search, color: Colors.white),
+                    onPressed: () {},
+                  ),
+                ],
+              ),
+              SliverToBoxAdapter(
+                child: AnimationLimiter(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: AnimationConfiguration.toStaggeredList(
+                      duration: const Duration(milliseconds: 375),
+                      childAnimationBuilder: (widget) => SlideAnimation(
+                        horizontalOffset: 50.0,
+                        child: FadeInAnimation(
+                          child: widget,
+                        ),
+                      ),
+                      children: [
+                        _buildSectionTitle('Cerita Populer'),
+                        StoryCarousel(),
+                        _buildSectionTitle('Kategori'),
+                        CategoryList(),
+                        _buildSectionTitle('Rekomendasi untuk Anda'),
+                        RecommendedStories(
+                            favoritesController: favoritesController),
+                      ],
+                    ),
+                  ),
                 ),
               ),
-              const StoryCarousel(),
-              const Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Text(
-                  'Categories',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-              ),
-              CategoryList(),
-              const Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Text(
-                  'Recommended for You',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-              ),
-              RecommendedStories(),
             ],
           ),
         ),
-        bottomNavigationBar: BottomNavigationBar(
+      ),
+      bottomNavigationBar: _buildBottomNavigationBar(),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _openGoogleMaps,
+        backgroundColor: Colors.deepPurple,
+        child: Icon(Icons.map, color: Colors.white),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(16, 24, 16, 16),
+      child: Text(
+        title,
+        style: TextStyle(
+            fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+      ),
+    );
+  }
+
+  Widget _buildBottomNavigationBar() {
+    return Container(
+      decoration: const BoxDecoration(
+        borderRadius: BorderRadius.only(
+          topRight: Radius.circular(30),
+          topLeft: Radius.circular(30),
+          // color: Colors.white,
+          
+        ),
+        color: Color.fromARGB(248, 139, 22, 22),
+        boxShadow: [
+          BoxShadow(color: Colors.purple, spreadRadius: 0, blurRadius: 10),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(30.0),
+          topRight: Radius.circular(30.0),
+        ),
+        child: BottomNavigationBar(
+          backgroundColor: Colors.deepPurple,
+          selectedItemColor: Colors.white,
+          unselectedItemColor: Colors.white.withOpacity(0.6),
           items: const [
             BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: 'Home',
+                icon: Icon(Icons.home),
+                label: 'Beranda',
+                backgroundColor: Colors.deepPurple
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.book),
-              label: 'Library',
+                icon: Icon(Icons.book),
+                label: 'Perpustakaan',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.post_add),
-              label: 'Write',
+                icon: Icon(Icons.post_add),
+                label: 'Tulis',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.favorite),
-              label: 'Favorites',
+                icon: Icon(Icons.favorite),
+                label: 'Favorit',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.person),
-              label: 'Profile',
+                icon: Icon(Icons.person),
+                label: 'Profil',
             ),
           ],
           onTap: (index) {
-            if (index == 1) {
-              // Define your route for Library
-              Get.toNamed(Routes.API);
-            } else if (index == 2) {
-              // Define your route for Write
-              Get.toNamed('/write');
-            } else if (index == 3) {
-              Get.to(() => FavoritesPage());
-            } else if (index == 4) {
-              // Define your route for Profile
-              Get.toNamed(Routes.PROFILE);
+            switch (index) {
+              case 1:
+                Get.toNamed(Routes.API);
+                break;
+              case 2:
+                Get.toNamed('/write');
+                break;
+              case 3:
+                Get.to(() => FavoritesPage());
+                break;
+              case 4:
+                Get.toNamed(Routes.PROFILE);
+                break;
             }
           },
         ),
-        floatingActionButton: FloatingActionButton(
-            onPressed: _openGoogleMaps,
-            backgroundColor: Colors.orange,
-            child: const Icon(Icons.map),
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       ),
     );
   }
 }
 
-class StoryCarousel extends StatefulWidget {
-  const StoryCarousel({super.key});
-
-  @override
-  _StoryCarouselState createState() => _StoryCarouselState();
-}
-
-class _StoryCarouselState extends State<StoryCarousel> {
-  final List<String> stories = ['Story 1', 'Story 2', 'Story 3', 'Story 4'];
-  List<File?> _selectedImages = [null, null, null, null];
-
-  Future<void> _pickImage(int index) async {
-    final ImagePicker _picker = ImagePicker();
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-
-    if (image != null) {
-      setState(() {
-        _selectedImages[index] = File(image.path);
-      });
-    }
-  }
+class StoryCarousel extends StatelessWidget {
+  const StoryCarousel({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -206,45 +216,38 @@ class _StoryCarouselState extends State<StoryCarousel> {
       height: 250,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        itemCount: stories.length,
+        itemCount: 5,
         itemBuilder: (context, index) {
-          return Card(
-            color: Colors.grey[800],
-            child: Container(
-              width: 150,
-              child: Column(
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        _pickImage(index);
-                      },
-                      child: _selectedImages[index] != null
-                          ? Image.file(
-                        _selectedImages[index]!,
-                        fit: BoxFit.cover,
-                      )
-                          : 
-                          Image.asset('assets/150.png', fit: BoxFit.cover),
-                      //     Image.network(
-                      //   'https://via.placeholder.com/150',
-                      //   fit: BoxFit.cover,
-                      // ),
+          return Padding(
+            padding: EdgeInsets.symmetric(horizontal: 8),
+            child: Column(
+              children: [
+                Container(
+                  width: 160,
+                  height: 200,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(15),
+                    image: DecorationImage(
+                      image: NetworkImage(
+                          'https://picsum.photos/200/300?random=$index'),
+                      fit: BoxFit.cover,
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black26,
+                        offset: Offset(0, 2),
+                        blurRadius: 6.0,
+                      ),
+                    ],
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      stories[index],
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                  ElevatedButton(
-                    onPressed: () => _pickImage(index),
-                    child: Text("Pick Image"),
-                  ),
-                ],
-              ),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'Cerita ${index + 1}',
+                  style: TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+              ],
             ),
           );
         },
@@ -254,29 +257,31 @@ class _StoryCarouselState extends State<StoryCarousel> {
 }
 
 class CategoryList extends StatelessWidget {
-  CategoryList({super.key});
+  CategoryList({Key? key}) : super(key: key);
 
   final List<String> categories = [
-    'Romance',
-    'Fantasy',
+    'Romansa',
+    'Fantasi',
     'Thriller',
-    'Science Fiction',
-    'Mystery',
+    'Fiksi Ilmiah',
+    'Misteri',
   ];
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 100,
+      height: 50,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: categories.length,
         itemBuilder: (context, index) {
           return Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
             child: Chip(
-              label: Text(categories[index], style: TextStyle(color: Colors.white)),
-              backgroundColor: Colors.grey[700],
+              label: Text(categories[index],
+                  style: TextStyle(color: Colors.white)),
+              backgroundColor: Colors.deepPurple,
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             ),
           );
         },
@@ -285,67 +290,106 @@ class CategoryList extends StatelessWidget {
   }
 }
 
-class NoConnectionPage extends StatelessWidget {
-  const NoConnectionPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('No Connection'),
-      ),
-      body: Center(
-        child: Text(
-          'No Internet Connection',
-          style: TextStyle(fontSize: 24, color: Colors.red),
-        ),
-      ),
-    );
-  }
-}
-
 class RecommendedStories extends StatelessWidget {
-  RecommendedStories({super.key});
+  final FavoritesController favoritesController;
+  final HomeController homeController = Get.find<HomeController>();
 
-  final List<String> recommended = [
-    'Stuck With Mr. Billionaire',
-    'Hell University',
-    'A Brilliant Plan',
-  ];
+  RecommendedStories({required this.favoritesController, Key? key})
+      : super(key: key);
 
-  final List<String> urls = [
-    'https://www.wattpad.com/story/243832194-stuck-with-mr-billionaire',
-    'https://www.wattpad.com/story/157780928-hell-university',
-    'https://www.wattpad.com/story/65808245-a-brilliant-plan',
-  ];
+  final RxList<bool> likedStatus = RxList<bool>.empty(growable: true);
 
   @override
   Widget build(BuildContext context) {
-    final ConnectivityController connectivityController = Get.put(ConnectivityController());
-    return Column(
-      children: recommended.map((story) {
-        int index = recommended.indexOf(story);
-        return ListTile(
-          leading: 
-          Image.asset('assets/50.png', fit: BoxFit.cover),
-          // Image.network(
-          //   'https://via.placeholder.com/50',
-          //   fit: BoxFit.cover,
-          // ),
-          title: Text(story, style: TextStyle(color: Colors.white)),
-          subtitle: Text('Author Name', style: TextStyle(color: Colors.grey)),
-          onTap: () {
-            if (connectivityController.isConnected.value) {
-              Get.to(WebViewScreen(url: urls[index]));
-            } else {
-              connectivityController.setTargetUrl(urls[index]);
-              Get.to(NoConnectionPage());
-            }
-          },
-        );
-      }).toList(),
-    );
+    syncLikedStatus();
+
+    if (likedStatus.isEmpty) {
+      likedStatus
+          .addAll(List.generate(homeController.stories.length, (_) => false));
+    }
+
+    return Obx(() {
+      if (homeController.stories.isEmpty) {
+        return Center(
+            child: CircularProgressIndicator(color: Colors.deepPurple));
+      }
+
+      return Column(
+        children: homeController.stories.asMap().entries.map((entry) {
+          int index = entry.key;
+          var story = entry.value;
+
+          return Padding(
+            padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: ListTile(
+                contentPadding: EdgeInsets.all(16),
+                leading: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: story['image'] != null && story['image'].isNotEmpty
+                      ? Image.network(
+                          story['image'],
+                          width: 60,
+                          height: 80,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              Image.asset('assets/50.png', fit: BoxFit.cover),
+                        )
+                      : Image.asset('assets/50.png',
+                          width: 60, height: 80, fit: BoxFit.cover),
+                ),
+                title: Text(story['title'],
+                    style: TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold)),
+                subtitle:
+                    Text(story['author'], style: TextStyle(color: Colors.grey)),
+                trailing: Obx(() {
+                  return IconButton(
+                    icon: Icon(
+                      likedStatus[index]
+                          ? Icons.favorite
+                          : Icons.favorite_border,
+                      color: likedStatus[index] ? Colors.red : Colors.grey,
+                    ),
+                    onPressed: () {
+                      likedStatus[index] = !likedStatus[index];
+                      if (likedStatus[index]) {
+                        favoritesController.addFavorite(
+                          story['id'],
+                          story['title'],
+                          story['author'],
+                          story['description'],
+                        );
+                      } else {
+                        favoritesController.removeStory(story['id']);
+                      }
+                    },
+                  );
+                }),
+                onTap: () {
+                  Get.to(() => WebViewScreen(url: story['url']));
+                },
+              ),
+            ),
+          );
+        }).toList(),
+      );
+    });
+  }
+
+  void syncLikedStatus() {
+    everAll([homeController.stories, favoritesController.favoriteItems], (_) {
+      likedStatus.clear();
+      likedStatus.addAll(homeController.stories.map((story) {
+        return favoritesController.favoriteItems.any((favorite) {
+          return favorite['id'] == story['id'];
+        });
+      }).toList());
+    });
   }
 }
-
 

@@ -1,8 +1,10 @@
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:terra_brain/presentation/controllers/favorites_controller.dart';
 import 'package:video_player/video_player.dart';
 import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -10,8 +12,10 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import '../pages/webview_page.dart';
 
 class HomeController extends GetxController {
+  final favoritesController = Get.find<FavoritesController>();
   final ImagePicker _picker = ImagePicker(); //object image picker
   final box = GetStorage(); //get storage variable
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   var selectedImagePath = ''.obs; //variable untuk menyimpan path image
   var isImageLoading = false.obs; //variable untuk loading state
@@ -20,10 +24,13 @@ class HomeController extends GetxController {
   var isVideoPlaying = false.obs; //variable untuk pause and play state
   VideoPlayerController? videoPlayerController;
 
+  var stories = <Map<String, dynamic>>[].obs;
+
   @override
   void onInit() {
     super.onInit();
     _loadStoredData();
+    _getStories();
   }
 
   @override
@@ -38,7 +45,29 @@ class HomeController extends GetxController {
     super.onClose();
   }
 
-  //Function Future untuk menggunakakn kamera atau galeri
+  void _getStories() async {
+    try {
+      QuerySnapshot snapshot = await _firestore.collection('stories').get();
+
+      stories.value = snapshot.docs.map((doc) {
+        return {
+          'id': doc.id,
+          'title': doc['title'],
+          'description': doc['description'],
+          'author': doc['author'],
+          'image': doc['imagePath'],
+        };
+      }).toList();
+    } catch (e) {
+      print("Error: $e");
+    }
+  }
+  void _setLikeStatus() async{
+    try {
+    } catch (e) {}
+  }
+
+
   Future<void> pickImage(ImageSource source) async {
     try {
       isImageLoading.value = true;
@@ -46,7 +75,7 @@ class HomeController extends GetxController {
       if (pickedFile != null) {
         selectedImagePath.value = pickedFile.path;
         box.write(
-            'imagePath', pickedFile.path); //menyimpan image path ke get_storage
+            'imagePath', pickedFile.path); 
       } else {
         print('No image selected.');
       }
@@ -67,13 +96,13 @@ class HomeController extends GetxController {
 
         // Initialize VideoPlayerController
         videoPlayerController =
-        VideoPlayerController.file(File(pickedFile.path))
-          ..initialize().then((_) {
-            // Ensure the first frame is shown
-            videoPlayerController!.play();
-            isVideoPlaying.value = true; // Update status
-            update(); // Notify UI
-          });
+            VideoPlayerController.file(File(pickedFile.path))
+              ..initialize().then((_) {
+                // Ensure the first frame is shown
+                videoPlayerController!.play();
+                isVideoPlaying.value = true; // Update status
+                update(); // Notify UI
+              });
       } else {
         print('No video selected.');
       }
@@ -90,12 +119,12 @@ class HomeController extends GetxController {
 
     if (selectedVideoPath.value.isNotEmpty) {
       videoPlayerController =
-      VideoPlayerController.file(File(selectedVideoPath.value))
-        ..initialize().then((_) {
-          videoPlayerController!.play();
-          // isVideoPlaying.value = true; // Update status
-          // update(); // Notify UI
-        });
+          VideoPlayerController.file(File(selectedVideoPath.value))
+            ..initialize().then((_) {
+              videoPlayerController!.play();
+              // isVideoPlaying.value = true; // Update status
+              // update(); // Notify UI
+            });
     }
   }
 
@@ -134,7 +163,9 @@ class ConnectivityController extends GetxController {
     super.onInit();
     _checkConnectivity();
     // Listen to connectivity changes
-    Connectivity().onConnectivityChanged.listen((List<ConnectivityResult> results) {
+    Connectivity()
+        .onConnectivityChanged
+        .listen((List<ConnectivityResult> results) {
       _updateConnectionStatus(results);
     });
   }
@@ -147,7 +178,8 @@ class ConnectivityController extends GetxController {
   void _updateConnectionStatus(List<ConnectivityResult> results) {
     // Check if any of the results indicate a connection
     bool previouslyConnected = isConnected.value;
-    isConnected.value = results.any((result) => result != ConnectivityResult.none);
+    isConnected.value =
+        results.any((result) => result != ConnectivityResult.none);
 
     // Jika sebelumnya tidak terhubung dan sekarang terhubung, arahkan ke URL target
     if (!previouslyConnected && isConnected.value && targetUrl != null) {

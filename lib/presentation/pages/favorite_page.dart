@@ -51,70 +51,50 @@ class _FavoritesPageState extends State<FavoritesPage> {
         backgroundColor: Colors.grey[900],
       ),
       backgroundColor: Colors.black,
-      body: StreamBuilder(
-        stream: controller.getFavoritesStream(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Text('Error: ${snapshot.error}', style: const TextStyle(color: Colors.white));
-          }
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: Obx(() {
+        // Gunakan favoriteItems dari controller
+        final favoriteItems = controller.favoriteItems;
 
-          final data = snapshot.data!.docs;
+        if (favoriteItems.isEmpty) {
+          return const Center(child: Text('No favorites added yet.', style: TextStyle(color: Colors.white)));
+        }
 
-          return ListView.builder(
-            itemCount: data.length,
-            itemBuilder: (context, index) {
-              final item = data[index];
-              return Card(
-                color: Colors.grey[850],
-                child: ListTile(
-                  title: Text(item['title'], style: const TextStyle(color: Colors.white)),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text("Author: ${item['author']}", style: const TextStyle(color: Colors.grey)),
-                      Text(item['description'], style: const TextStyle(color: Colors.white70)),
-                    ],
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.orange),
-                        onPressed: () async {
-                          final updatedData = await _showEditDialog(context, item);
-                          if (updatedData != null) {
-                            controller.updateFavorite(
-                              item.id,
-                              updatedData['title']!,
-                              updatedData['author']!,
-                              updatedData['description']!,
-                            );
-                          }
-                        },
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.redAccent),
-                        onPressed: () => controller.deleteFavorite(item.id),
-                      ),
-                    ],
-                  ),
+        return ListView.builder(
+          itemCount: favoriteItems.length,
+          itemBuilder: (context, index) {
+            final item = favoriteItems[index];
+            return Card(
+              color: Colors.grey[850],
+              child: ListTile(
+                title: Text(item['title'], style: const TextStyle(color: Colors.white)),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Author: ${item['author']}", style: const TextStyle(color: Colors.grey)),
+                    Text(item['description'], style: const TextStyle(color: Colors.white70)),
+                  ],
                 ),
-              );
-            },
-          );
-        },
-      ),
+                trailing: IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.redAccent),
+                  onPressed: () {
+                    controller.deleteFavorite(item['id']);
+                  },
+                ),
+              ),
+            );
+          },
+        );
+      }),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           final newFavorite = await _showAddDialog(context);
           if (newFavorite != null) {
             controller.addFavorite(
+              newFavorite['id']!,
               newFavorite['title']!,
               newFavorite['author']!,
               newFavorite['description']!,
+              // newFavorite['id'],
             );
           }
         },
@@ -155,11 +135,17 @@ class _FavoritesPageState extends State<FavoritesPage> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop({
-              'title': titleController.text,
-              'author': authorController.text,
-              'description': descriptionController.text,
-            }),
+            onPressed: () {
+              if (titleController.text.isEmpty || authorController.text.isEmpty || descriptionController.text.isEmpty) {
+                Get.snackbar("Error", "All fields must be filled out");
+                return;
+              }
+              Navigator.of(context).pop({
+                'title': titleController.text,
+                'author': authorController.text,
+                'description': descriptionController.text,
+              });
+            },
             child: const Text('Add', style: TextStyle(color: Colors.orange)),
           ),
         ],
@@ -198,49 +184,6 @@ class _FavoritesPageState extends State<FavoritesPage> {
           },
         ),
       ],
-    );
-  }
-
-  Future<Map<String, String>?> _showEditDialog(BuildContext context, QueryDocumentSnapshot item) async {
-    final titleController = TextEditingController(text: item['title']);
-    final authorController = TextEditingController(text: item['author']);
-    final descriptionController = TextEditingController(text: item['description']);
-    return showDialog<Map<String, String>>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.grey[900],
-        title: const Text('Edit Favorite', style: TextStyle(color: Colors.white)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildTextFieldWithVoiceInput(
-              context: context,
-              controller: titleController,
-              hint: "Story Title",
-            ),
-            _buildTextFieldWithVoiceInput(
-              context: context,
-              controller: authorController,
-              hint: "Author Name",
-            ),
-            _buildTextFieldWithVoiceInput(
-              context: context,
-              controller: descriptionController,
-              hint: "Description",
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop({
-              'title': titleController.text,
-              'author': authorController.text,
-              'description': descriptionController.text,
-            }),
-            child: const Text('Update', style: TextStyle(color: Colors.orange)),
-          ),
-        ],
-      ),
     );
   }
 }

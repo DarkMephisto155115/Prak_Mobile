@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:terra_brain/presentation/routes/app_pages.dart';
 import '../controllers/profile_controller.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+
 
 class ProfileScreen extends GetView<ProfileController> {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -168,7 +172,8 @@ class ProfileScreen extends GetView<ProfileController> {
       children: [
         _buildStatItem('Koin', controller.coins.value.toString()),
         _buildStatItem('Pengikut', controller.followers.value.toString()),
-        _buildStatItem('Daftar Bacaan', '2'),
+        _buildStatItem('Publikasi', controller.length.value.toString()),
+        _buildStatItem('Favorite', '0'),
         _buildStatItem('Mengikuti', controller.following.value.toString()),
       ],
     ));
@@ -206,7 +211,7 @@ class ProfileScreen extends GetView<ProfileController> {
   }
 
   Widget _buildPublishedStories() {
-    return Column(
+    return Obx(() => Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
@@ -214,25 +219,109 @@ class ProfileScreen extends GetView<ProfileController> {
           style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
         ),
         SizedBox(height: 12),
-        Card(
-          color: Colors.grey[900],
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
-          child: ListTile(
-            leading: Icon(Icons.book, color: Colors.deepPurple[300]),
-            title: Text(
-              'Darksiders concept',
-              style: TextStyle(color: Colors.white),
-            ),
-            subtitle: Text(
-              '0 Cerita Dipublikasikan',
-              style: TextStyle(color: Colors.grey[400]),
-            ),
-            trailing: Icon(Icons.arrow_forward_ios, color: Colors.grey[400]),
-          ),
+        FutureBuilder<List<QueryDocumentSnapshot>>(
+          future: _fetchStories(), // Call the asynchronous method to fetch stories
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(
+                child: CircularProgressIndicator(color: Colors.deepPurple),
+              );
+            }
+
+            if (snapshot.hasError) {
+              return Text(
+                'Terjadi kesalahan saat memuat cerita.',
+                style: TextStyle(color: Colors.red, fontSize: 16),
+              );
+            }
+
+            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return Text(
+                'Tidak ada cerita yang dipublikasikan.',
+                style: TextStyle(color: Colors.grey[400], fontSize: 14),
+              );
+            }
+
+            final stories = snapshot.data!;
+
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              controller.length.value = stories.length;
+            });
+
+            return ListView.builder(
+              shrinkWrap: true, // Allow ListView to adjust its height
+              physics: NeverScrollableScrollPhysics(), // Disable scrolling within the list
+              itemCount: stories.length,
+              itemBuilder: (context, index) {
+                final story = stories[index];
+                final title = story['title'] ?? 'Judul Tidak Tersedia';
+                final content = story['content'] ?? '';
+                final createdAt = story['createdAt'] ?? '';
+                final imagePath = story['imagePath'] ?? '';
+
+                String formattedDate = '';
+
+                if (createdAt.isNotEmpty) {
+                  try {
+                    // Parse the ISO 8601 string to a DateTime object
+                    DateTime dateTime = DateTime.parse(createdAt);
+
+                    // Format the DateTime to "Day Month Year" (e.g., "23 December 2024")
+                    formattedDate = DateFormat('dd MMMM yyyy').format(dateTime);
+                  } catch (e) {
+                    formattedDate = 'Invalid Date'; // Fallback if parsing fails
+                  }
+                }
+
+                return Card(
+                  color: Colors.grey[900],
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: ListTile(
+                    leading: imagePath.isNotEmpty
+                        ? Image.network(
+                      imagePath,
+                      width: 50,
+                      height: 50,
+                      fit: BoxFit.cover,
+                    )
+                        : Icon(Icons.book, color: Colors.deepPurple[300]),
+                    title: Text(
+                      title,
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    subtitle: Text(
+                      'Dibuat: $formattedDate',
+                      style: TextStyle(color: Colors.grey[400]),
+                    ),
+                    trailing: Icon(Icons.arrow_forward_ios, color: Colors.grey[400]),
+                    onTap: () {
+                      // Handle navigation to story detail
+                    },
+                  ),
+                );
+              },
+            );
+          },
         ),
       ],
-    );
+    ));
   }
+
+  Future<List<QueryDocumentSnapshot>> _fetchStories() async {
+    try {
+      // Fetch the stories from Firestore where 'writerId' matches the current user's ID
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('stories')
+          .where('writerId', isEqualTo: controller.userID.value)
+          .get();
+
+      return querySnapshot.docs; // Return the list of documents
+    } catch (e) {
+      print('Error fetching stories: $e');
+      return []; // Return an empty list on error
+    }
+  }
+
 }
