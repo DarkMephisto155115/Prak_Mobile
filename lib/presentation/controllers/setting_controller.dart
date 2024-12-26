@@ -13,8 +13,6 @@ class SettingController extends GetxController {
       
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.clear();
-      // await prefs.remove('isLoggedIn');
-      // await prefs.remove('userId');
       
       Get.offAllNamed(Routes.LOGIN);
 

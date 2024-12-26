@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import '../routes/app_pages.dart';
 import 'favorite_page.dart';
-// import 'webview_page.dart';
 import 'package:terra_brain/presentation/controllers/home_controller.dart';
 import 'package:terra_brain/presentation/controllers/favorites_controller.dart';
 
@@ -112,46 +110,6 @@ class ShowAllBooksPage extends StatelessWidget {
 class HomePage extends StatelessWidget {
   const HomePage({Key? key}) : super(key: key);
 
-  Future<void> _openGoogleMaps() async {
-    try {
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          throw 'Izin lokasi ditolak.';
-        }
-      }
-
-      if (permission == LocationPermission.deniedForever) {
-        throw 'Izin lokasi ditolak secara permanen.';
-      }
-
-      Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
-
-      final Uri googleMapsUrl = Uri.parse(
-          'https://www.google.com/maps/search/?api=1&query=${position.latitude},${position.longitude}');
-
-      if (await canLaunchUrl(googleMapsUrl)) {
-        await launchUrl(
-          googleMapsUrl,
-          mode: LaunchMode.externalApplication,
-        );
-      } else {
-        throw 'Tidak dapat membuka Google Maps.';
-      }
-    } catch (e) {
-      Get.snackbar(
-        'Error',
-        e.toString(),
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final FavoritesController favoritesController =
@@ -176,7 +134,7 @@ class HomePage extends StatelessWidget {
                 floating: false,
                 pinned: true,
                 flexibleSpace: FlexibleSpaceBar(
-                  title: Text('novelku', style: TextStyle(color: Colors.white)),
+                  title: Text('Novelku', style: TextStyle(color: Colors.white)),
                   background: Image.network(
                     'https://picsum.photos/800/400',
                     fit: BoxFit.cover,
@@ -219,12 +177,6 @@ class HomePage extends StatelessWidget {
         ),
       ),
       bottomNavigationBar: _buildBottomNavigationBar(),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _openGoogleMaps,
-        backgroundColor: Colors.deepPurple,
-        child: Icon(Icons.map, color: Colors.white),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 
@@ -414,7 +366,7 @@ class RecommendedStories extends StatelessWidget {
             child: CircularProgressIndicator(color: Colors.deepPurple));
       }
 
-      return Column(
+      return Obx(() => Column(
         children: homeController.stories.asMap().entries.map((entry) {
           int index = entry.key;
           var story = entry.value;
@@ -478,7 +430,7 @@ class RecommendedStories extends StatelessWidget {
             ),
           );
         }).toList(),
-      );
+      ));
     });
   }
 

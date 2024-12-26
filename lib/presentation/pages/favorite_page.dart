@@ -59,6 +59,9 @@ class _FavoritesPageState extends State<FavoritesPage> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: BackButton(
+            color: Colors.white
+        ),
         title: const Text('Favorites', style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.grey[900],
       ),

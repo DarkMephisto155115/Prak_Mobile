@@ -334,6 +334,9 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
+        leading: BackButton(
+            color: Colors.white
+        ),
         backgroundColor: Colors.deepPurple[700],
         title: const Text(
           'Tulis Ceritamu',

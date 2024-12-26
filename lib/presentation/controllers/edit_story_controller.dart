@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
-class StoryController extends GetxController {
+class EditStoryController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   final dateFormat = DateFormat('dd-MM-yyyy');
@@ -29,7 +29,6 @@ class StoryController extends GetxController {
     super.onInit();
     // Menggunakan ever untuk memantau perubahan pada storyId
 
-    // fetchStory();
     ever(storyId, (String id) {
       print("Story ID has changed to: $id"); // Log perubahan storyId
       if (id.isNotEmpty) {
@@ -58,7 +57,7 @@ class StoryController extends GetxController {
       print("Fetching story with ID: ${storyId.value}");
 
       DocumentSnapshot<Map<String, dynamic>> document =
-          await _firestore.collection('stories').doc(storyId.value).get();
+      await _firestore.collection('stories').doc(storyId.value).get();
       print("Fetched story document: ${document.data()}");
 
       if (document.exists) {
@@ -97,7 +96,7 @@ class StoryController extends GetxController {
       print("Fetching writer with ID: ${writerId.value}");
 
       DocumentSnapshot<Map<String, dynamic>> writerDocument =
-          await _firestore.collection('users').doc(writerId.value).get();
+      await _firestore.collection('users').doc(writerId.value).get();
       print("Fetched writer document: ${writerDocument.data()}");
 
       if (writerDocument.exists) {
@@ -116,5 +115,42 @@ class StoryController extends GetxController {
     }
   }
 
+  // Fungsi untuk mengedit cerita
+  Future<void> editStory({
+    required String newTitle,
+    required String newContent,
+    String? newImageUrl, // Opsional, jika ada gambar baru
+  }) async {
+    try {
+      if (storyId.value.isEmpty) {
+        print("Story ID is empty, cannot update the story.");
+        return;
+      }
 
+      print("Updating story with ID: ${storyId.value}");
+
+      Map<String, dynamic> updatedData = {
+        'title': newTitle,
+        'content': newContent,
+        'updatedAt': DateTime.now().toIso8601String(), // Menambahkan waktu update
+      };
+
+      if (newImageUrl != null && newImageUrl.isNotEmpty) {
+        updatedData['imageUrl'] = newImageUrl; // Menambahkan URL gambar jika ada
+      }
+
+      await _firestore.collection('stories').doc(storyId.value).update(updatedData);
+
+      // Memperbarui data di controller setelah sukses
+      title.value = newTitle;
+      content.value = newContent;
+      if (newImageUrl != null && newImageUrl.isNotEmpty) {
+        imagePath.value = newImageUrl;
+      }
+
+      print("Story updated successfully with data: $updatedData");
+    } catch (e) {
+      print('Error updating story: $e');
+    }
+  }
 }

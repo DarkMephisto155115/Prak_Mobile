@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:terra_brain/presentation/controllers/seeting_controller.dart';
+import 'package:terra_brain/presentation/controllers/setting_controller.dart';
 import 'package:terra_brain/presentation/routes/app_pages.dart';
 
 class SettingPage extends GetView<SettingController> {
@@ -11,6 +11,9 @@ class SettingPage extends GetView<SettingController> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
+        leading: BackButton(
+            color: Colors.white
+        ),
         backgroundColor: const Color(0xFF171717),
         elevation: 0,
         title: const Text('Setting'),
@@ -28,17 +31,6 @@ class SettingPage extends GetView<SettingController> {
               // Tambahkan navigasi ke halaman Edit Profile di sini
               // print("Navigate to Edit Profile");
               Get.toNamed(Routes.Edit);
-            },
-          ),
-          Divider(color: Colors.grey[800]),
-          ListTile(
-            title: const Text(
-              'Favorite Books',
-              style: TextStyle(color: Colors.white),
-            ),
-            onTap: () {
-              // Tambahkan navigasi ke halaman Favorite Books di sini
-              print("Navigate to Favorite Books");
             },
           ),
           Divider(color: Colors.grey[800]),

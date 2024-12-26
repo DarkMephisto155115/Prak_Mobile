@@ -70,6 +70,9 @@ class ProfileScreen extends GetView<ProfileController> {
             child: CustomScrollView(
               slivers: [
                 SliverAppBar(
+                  leading: BackButton(
+                      color: Colors.white
+                  ),
                   expandedHeight: 120.0,
                   floating: false,
                   pinned: true,
@@ -214,7 +217,8 @@ class ProfileScreen extends GetView<ProfileController> {
       children: [
         Text(
           'Cerita yang Dipublikasikan',
-          style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(
+              color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
         ),
         SizedBox(height: 12),
         FutureBuilder<List<QueryDocumentSnapshot>>(
@@ -252,8 +256,8 @@ class ProfileScreen extends GetView<ProfileController> {
               itemCount: stories.length,
               itemBuilder: (context, index) {
                 final story = stories[index];
+                final storyId = story.id; // Get the story ID for deletion
                 final title = story['title'] ?? 'Judul Tidak Tersedia';
-                final content = story['content'] ?? '';
                 final createdAt = story['createdAt'] ?? '';
                 final imagePath = story['imageUrl'] ?? '';
 
@@ -265,7 +269,8 @@ class ProfileScreen extends GetView<ProfileController> {
                     DateTime dateTime = DateTime.parse(createdAt);
 
                     // Format the DateTime to "Day Month Year" (e.g., "23 December 2024")
-                    formattedDate = DateFormat('dd MMMM yyyy').format(dateTime);
+                    formattedDate =
+                        DateFormat('dd MMMM yyyy').format(dateTime);
                   } catch (e) {
                     formattedDate = 'Invalid Date'; // Fallback if parsing fails
                   }
@@ -293,9 +298,21 @@ class ProfileScreen extends GetView<ProfileController> {
                       'Dibuat: $formattedDate',
                       style: TextStyle(color: Colors.grey[400]),
                     ),
-                    trailing: Icon(Icons.arrow_forward_ios, color: Colors.grey[400]),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.delete, color: Colors.red[400]),
+                          onPressed: () =>
+                              _confirmDelete(context, storyId), // Pass context
+                        ),
+                        Icon(Icons.arrow_forward_ios,
+                            color: Colors.grey[400]),
+                      ],
+                    ),
                     onTap: () {
                       // Handle navigation to story detail
+                      Get.toNamed(Routes.PROFILE_READ, arguments: {'id': storyId});
                     },
                   ),
                 );
@@ -306,6 +323,48 @@ class ProfileScreen extends GetView<ProfileController> {
       ],
     ));
   }
+
+  Future<void> _confirmDelete(BuildContext context, String storyId) async {
+    bool confirm = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Hapus Cerita'),
+        content: Text('Apakah Anda yakin ingin menghapus cerita ini?'),
+        actions: [
+          TextButton(
+            child: Text('Batal'),
+            onPressed: () => Navigator.of(context).pop(false),
+          ),
+          TextButton(
+            child: Text('Hapus'),
+            onPressed: () => Navigator.of(context).pop(true),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      await _deleteStory(storyId);
+    }
+  }
+
+  Future<void> _deleteStory(String storyId) async {
+    try {
+      // Delete the story document from Firestore
+      await FirebaseFirestore.instance
+          .collection('stories')
+          .doc(storyId)
+          .delete();
+
+      // Optionally, show a success message
+      print('Story deleted successfully');
+    } catch (e) {
+      print('Error deleting story: $e');
+    }
+  }
+
+
+
 
   Future<List<QueryDocumentSnapshot>> _fetchStories() async {
     try {

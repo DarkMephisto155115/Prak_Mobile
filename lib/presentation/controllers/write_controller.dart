@@ -38,9 +38,7 @@ class WriteController extends GetxController {
 
     String? localUserId = prefs.getString('userId');
     if (localUserId == null) {
-      // print("Tidak ada userId");
     } else {
-      // print("User id: $localUserId");
       userId.value = localUserId;
     }
     return localUserId;

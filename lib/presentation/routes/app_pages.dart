@@ -6,12 +6,13 @@ import 'package:terra_brain/presentation/pages/favorite_page.dart';
 import 'package:terra_brain/presentation/pages/gps_page.dart';
 import 'package:terra_brain/presentation/pages/home_page.dart';
 import 'package:terra_brain/presentation/pages/profile_page.dart';
-import 'package:terra_brain/presentation/pages/image_page.dart';
 import 'package:terra_brain/presentation/pages/registration_page.dart';
 import 'package:terra_brain/presentation/pages/setting_page.dart';
 import 'package:terra_brain/presentation/pages/splash_screen.dart';
 import 'package:terra_brain/presentation/pages/story_page.dart';
 import '../../presentation/pages/login_page.dart';
+import '../pages/edit_story_page.dart';
+import '../pages/profile_story_page.dart';
 import '../pages/write_page.dart';
 
 part 'app_routes.dart';
@@ -28,10 +29,6 @@ class AppPages {
         name: Routes.PROFILE,
         page: () => const ProfileScreen(),
         binding: ProfileBinding()),
-    GetPage(
-      name: Routes.IMAGE_PAGE,
-      page: () => const ImagePage(),
-    ),
     GetPage(
       name: Routes.REGISTRATION,
       page: () => const RegistrationPage(),
@@ -80,6 +77,16 @@ class AppPages {
       name: Routes.READ,
       page: () => StoryPage(),
       binding: StoryBinding(),
+    ),
+    GetPage(
+      name: Routes.PROFILE_READ,
+      page: () => ProfileStoryPage(),
+      binding: StoryBinding(),
+    ),
+    GetPage(
+      name: Routes.EDIT_READ,
+      page: () => EditStoryPage(),
+      binding: EditStoryBinding(),
     ),
   ];
 }

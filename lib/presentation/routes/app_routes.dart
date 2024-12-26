@@ -15,4 +15,6 @@ abstract class Routes {
   static const GPS = '/gps';
   static const Edit = '/edit_profile';
   static const READ = '/read';
+  static const PROFILE_READ = '/profile_read';
+  static const EDIT_READ = '/edit_read';
 }
