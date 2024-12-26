@@ -255,7 +255,7 @@ class ProfileScreen extends GetView<ProfileController> {
                 final title = story['title'] ?? 'Judul Tidak Tersedia';
                 final content = story['content'] ?? '';
                 final createdAt = story['createdAt'] ?? '';
-                final imagePath = story['imagePath'] ?? '';
+                final imagePath = story['imageUrl'] ?? '';
 
                 String formattedDate = '';
 
@@ -272,7 +272,7 @@ class ProfileScreen extends GetView<ProfileController> {
                 }
 
                 return Card(
-                  color: Colors.grey[900],
+                  color: Colors.grey[800],
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15),
                   ),

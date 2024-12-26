@@ -114,7 +114,7 @@ class StoryPage extends GetView<StoryController> {
               radius: 24,
               backgroundImage: controller.writerImage.value.isNotEmpty
                   ? NetworkImage(controller.writerImage.value)
-                  : AssetImage('assets/images/default_profile.jpeg'),
+                  : AssetImage('assets/images/default_profile.jpeg')
             );
           }),
           const SizedBox(width: 16),

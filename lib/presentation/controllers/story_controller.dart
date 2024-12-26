@@ -69,7 +69,7 @@ class StoryController extends GetxController {
         date.value = storyData['createdAt'] != null
             ? dateFormat.format(DateTime.parse(storyData['createdAt']))
             : '';
-        imagePath.value = storyData['imagePath'] ?? '';
+        imagePath.value = storyData['imageUrl'] ?? '';
         category.value = storyData['category'] ?? '';
         favorite.value = storyData['favorite'] ?? 0;
 
@@ -104,7 +104,7 @@ class StoryController extends GetxController {
         var writerData = writerDocument.data()!;
         writerName.value = writerData['name'];
         writerUsername.value = writerData['username'] ?? '';
-        writerImage.value = writerData['imagePath'] ?? '';
+        writerImage.value = writerData['imagesURL'] ?? '';
         writerFollower.value = writerData['follower'] ?? 0;
 
         print("Writer data loaded: $writerData");

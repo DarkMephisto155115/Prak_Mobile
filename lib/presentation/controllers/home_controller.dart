@@ -53,9 +53,9 @@ class HomeController extends GetxController {
         return {
           'id': doc.id,
           'title': doc['title'],
-          'description': doc['description'],
+          // 'description': doc['description'],
+          'image': doc['imageUrl'],
           'author': doc['author'],
-          'image': doc['imagePath'],
         };
       }).toList();
     } catch (e) {

@@ -5,7 +5,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import '../routes/app_pages.dart';
 import 'favorite_page.dart';
-import 'webview_page.dart';
+// import 'webview_page.dart';
 import 'package:terra_brain/presentation/controllers/home_controller.dart';
 import 'package:terra_brain/presentation/controllers/favorites_controller.dart';
 
@@ -86,7 +86,7 @@ class ShowAllBooksPage extends StatelessWidget {
                   ),
                 ),
                 subtitle: Text(
-                  books[index]['author']!,
+                  "@${{ books[index]['author']! }}",
                   style: const TextStyle(
                     color: Colors.white70,
                     fontSize: 14,
@@ -446,7 +446,7 @@ class RecommendedStories extends StatelessWidget {
                     style: TextStyle(
                         color: Colors.white, fontWeight: FontWeight.bold)),
                 subtitle:
-                    Text(story['author'], style: TextStyle(color: Colors.grey)),
+                    Text("@${story['author']}", style: TextStyle(color: Colors.grey)),
                 trailing: Obx(() {
                   return IconButton(
                     icon: Icon(

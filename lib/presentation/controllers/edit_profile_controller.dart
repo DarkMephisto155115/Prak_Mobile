@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -9,6 +10,7 @@ import 'dart:io';
 import 'package:terra_brain/presentation/routes/app_pages.dart';
 
 class EditProfileController extends GetxController {
+  // data yang diupdate
   final nama = ''.obs;
   final username = ''.obs;
   final birthDate = Rx<DateTime?>(null);
@@ -46,7 +48,7 @@ class EditProfileController extends GetxController {
     if (userData != null) {
       nama.value = userData['name'] ?? '';
       username.value = userData['username'] ?? '';
-      imagesURL.value = userData['imagesURL'];
+      imagesURL.value = userData['imagesURL'] ?? '';
       alamat.value = userData['address'] ?? "";
       latitude.value = (userData['latitude'] != null)
           ? (userData['latitude'] is double
@@ -116,20 +118,41 @@ class EditProfileController extends GetxController {
     try {
       String? imagesUrl;
 
-      if (imagesURL.isNotEmpty) {
+      // Ambil URL gambar lama dari Firestore
+      final oldImageURL = imagesURL.value;
+
+      // Jika gambar baru dipilih dan berbeda dari yang lama
+      if (imagesURL.isNotEmpty && imagesURL.value != oldImageURL) {
+        // Pastikan file yang akan diupload ada
+        final file = File(imagesURL.value);
+        if (!file.existsSync()) {
+          Get.snackbar('Error', 'File gambar tidak ditemukan di perangkat');
+          return;
+        }
+
+        // Ambil referensi ke Firebase Storage
         final ref =
             _storage.ref('profile_images/${_auth.currentUser!.uid}.jpg');
 
-        try {
-          await ref.delete();
-        } catch (e) {
-          // next
+        // Hapus gambar lama jika ada
+        if (oldImageURL.isNotEmpty) {
+          try {
+            await ref.delete();
+            print("Gambar lama dihapus");
+          } catch (e) {
+            print("Gagal menghapus gambar lama: $e");
+          }
         }
 
-        await ref.putFile(File(imagesURL.value));
+        // Upload gambar baru ke Firebase Storage
+        await ref.putFile(file);
         imagesUrl = await ref.getDownloadURL();
+      } else {
+        // Jika tidak ada perubahan gambar, gunakan URL gambar yang ada
+        imagesUrl = oldImageURL;
       }
 
+      // Update data pengguna ke Firestore
       final uid = _auth.currentUser!.uid;
       final data = {
         'name': nama.value,
@@ -147,9 +170,11 @@ class EditProfileController extends GetxController {
       await _firestore.collection('users').doc(uid).update(data);
 
       Get.snackbar('Sukses', 'Profil berhasil diperbarui');
-      Get.toNamed(Routes.PROFILE);
+      Get.offNamed(Routes.PROFILE);
     } catch (e) {
-      Get.snackbar('Error', 'Gagal memperbarui profil: $e');
+      Get.snackbar('Error', 'Gagal memperbarui profil: $e',
+          backgroundColor: Colors.red);
+      print("error: $e");
     }
   }
 
