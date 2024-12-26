@@ -18,7 +18,6 @@ class ProfileController extends GetxController {
 
   var length = 0.obs;
 
-
   @override
   void onInit() {
     super.onInit();

@@ -6,6 +6,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:terra_brain/presentation/controllers/edit_profile_controller.dart';
 
 class EditProfilePage extends GetView<EditProfileController> {
+  const EditProfilePage({super.key});
+  
   @override
   Widget build(BuildContext context) {
     final namaController = TextEditingController();
@@ -47,17 +49,24 @@ class EditProfilePage extends GetView<EditProfileController> {
               const SizedBox(height: 20),
               GestureDetector(
                 onTap: () => _showImageSourceDialog(context),
-                child: Obx(() => CircleAvatar(
-                      radius: 60,
-                      backgroundColor: Colors.grey[800],
-                      backgroundImage: controller.imagesURL.isNotEmpty
-                          ? NetworkImage(controller.imagesURL.value)
-                          : null,
-                      child: controller.imagesURL.isEmpty
-                          ? const Icon(Icons.person,
-                              size: 60, color: Colors.white)
-                          : null,
-                    )),
+                child: Obx(
+                  () => CircleAvatar(
+                    radius: 60,
+                    backgroundColor: Colors.grey[800],
+                    backgroundImage: controller.imagesURL.isNotEmpty
+                        ? NetworkImage(controller.imagesURL.value)
+                        : controller.imagesURL.isEmpty &&
+                                controller.imagesURL.value.isNotEmpty
+                            ? FileImage(File(controller.imagesURL.value))
+                                as ImageProvider
+                            : const AssetImage(
+                                'assets/images/default_avatar.png'),
+                    child: controller.imagesURL.isEmpty
+                        ? const Icon(Icons.person,
+                            size: 60, color: Colors.white)
+                        : null,
+                  ),
+                ),
               ),
               const SizedBox(height: 20),
               TextField(
@@ -189,42 +198,42 @@ class EditProfilePage extends GetView<EditProfileController> {
                 onPressed: () {
                   Get.dialog(
                     AlertDialog(
-                      title: Text(
+                      title: const Text(
                         'Hapus Akun',
                         style: TextStyle(color: Colors.white),
                       ),
-                      content: Text(
+                      content: const Text(
                         'Apakah Anda yakin ingin menghapus akun?',
                         style: TextStyle(color: Colors.white),
                       ),
                       actions: [
                         TextButton(
                           onPressed: () => Get.back(),
-                          child: Text('Batal'),
+                          child: const Text('Batal'),
                         ),
                         TextButton(
                           onPressed: () {
                             Get.back();
                             controller.hapusAkun();
                           },
-                          child: Text(
+                          style:
+                              TextButton.styleFrom(foregroundColor: Colors.red),
+                          child: const Text(
                             'Hapus',
                             style: TextStyle(color: Colors.white),
                           ),
-                          style:
-                              TextButton.styleFrom(foregroundColor: Colors.red),
                         ),
                       ],
                       backgroundColor: Colors.grey[900],
                     ),
                   );
                 },
-                child: Text(
-                  'Hapus Akun',
-                  style: TextStyle(color: Colors.white),
-                ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red,
+                ),
+                child: const Text(
+                  'Hapus Akun',
+                  style: TextStyle(color: Colors.white),
                 ),
               ),
             ],
