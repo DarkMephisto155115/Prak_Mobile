@@ -2,18 +2,18 @@ import 'package:get/get.dart';
 import 'package:terra_brain/presentation/bindings/main_bindings.dart';
 import 'package:terra_brain/presentation/pages/API_page.dart';
 import 'package:terra_brain/presentation/pages/edit_profile_page.dart';
+import 'package:terra_brain/presentation/pages/edit_story_page.dart';
 import 'package:terra_brain/presentation/pages/favorite_page.dart';
 import 'package:terra_brain/presentation/pages/gps_page.dart';
 import 'package:terra_brain/presentation/pages/home_page.dart';
+import 'package:terra_brain/presentation/pages/login_page.dart';
 import 'package:terra_brain/presentation/pages/profile_page.dart';
+import 'package:terra_brain/presentation/pages/profile_story_page.dart';
 import 'package:terra_brain/presentation/pages/registration_page.dart';
 import 'package:terra_brain/presentation/pages/setting_page.dart';
 import 'package:terra_brain/presentation/pages/splash_screen.dart';
 import 'package:terra_brain/presentation/pages/story_page.dart';
-import '../../presentation/pages/login_page.dart';
-import '../pages/edit_story_page.dart';
-import '../pages/profile_story_page.dart';
-import '../pages/write_page.dart';
+import 'package:terra_brain/presentation/pages/write_page.dart';
 
 part 'app_routes.dart';
 
@@ -55,7 +55,7 @@ class AppPages {
     ),
     GetPage(
       name: Routes.FAVORITE,
-      page: () => FavoritesPage(),
+      page: () => const FavoritesPage(),
       binding: FavoriteBinding(),
     ),
     GetPage(
@@ -70,17 +70,17 @@ class AppPages {
     ),
     GetPage(
       name: Routes.Edit,
-      page: () => EditProfilePage(),
+      page: () => const EditProfilePage(),
       binding: EditProfileBinding(),
     ),
     GetPage(
       name: Routes.READ,
-      page: () => StoryPage(),
+      page: () => const StoryPage(),
       binding: StoryBinding(),
     ),
     GetPage(
       name: Routes.PROFILE_READ,
-      page: () => ProfileStoryPage(),
+      page: () => const ProfileStoryPage(),
       binding: StoryBinding(),
     ),
     GetPage(

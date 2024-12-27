@@ -4,13 +4,13 @@ import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:terra_brain/presentation/controllers/story_controller.dart';
 
 class ProfileStoryPage extends GetView<StoryController> {
-  const ProfileStoryPage({Key? key}) : super(key: key);
+  const ProfileStoryPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     final arguments = Get.arguments as Map<String, dynamic>;
     final storyId = arguments['id'] as String;
-    print('Story ID: $storyId'); // Cek nilai dan tipe data
+    // print('Story ID: $storyId'); 
     if (storyId is String) {
       controller.setStoryId(storyId); // Set storyId ke controller
       // Ini jika argumen benar adalah String
@@ -51,12 +51,12 @@ class ProfileStoryPage extends GetView<StoryController> {
                 flexibleSpace: FlexibleSpaceBar(
                   title: Obx(() {
                     if (controller.title.isEmpty) {
-                      return Text('Loading...', style: TextStyle(color: Colors.red));
+                      return const Text('Loading...', style: TextStyle(color: Colors.red));
                     }
-                    print(controller.title.value);
+                    // print(controller.title.value);
                     return Text(
                       controller.title.value,
-                      style: TextStyle(color: Colors.white),
+                      style: const TextStyle(color: Colors.white),
                     );
                   }),
                   background: Obx(() {
@@ -125,7 +125,7 @@ class ProfileStoryPage extends GetView<StoryController> {
                 radius: 24,
                 backgroundImage: controller.writerImage.value.isNotEmpty
                     ? NetworkImage(controller.writerImage.value)
-                    : AssetImage('assets/images/default_profile.jpeg')
+                    : const AssetImage('assets/images/default_profile.jpeg')
             );
           }),
           const SizedBox(width: 16),
@@ -234,8 +234,8 @@ class ProfileStoryPage extends GetView<StoryController> {
       child: Column(
         children: [
           Icon(icon, color: Colors.white),
-          SizedBox(height: 4),
-          Text(label, style: TextStyle(color: Colors.white)),
+          const SizedBox(height: 4),
+          Text(label, style: const TextStyle(color: Colors.white)),
         ],
       ),
     );

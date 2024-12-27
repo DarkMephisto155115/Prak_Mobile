@@ -6,7 +6,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-
 import 'package:terra_brain/presentation/routes/app_pages.dart';
 
 class EditProfileController extends GetxController {
@@ -35,15 +34,15 @@ class EditProfileController extends GetxController {
   Future<void> _getUserData() async {
     final currentUser = _auth.currentUser;
     if (currentUser == null) {
-      print("Tidak ada status autentikasi");
+      // print("Tidak ada status autentikasi");
       return;
     }
 
     userID = currentUser.uid;
-    print("user Id: $userID");
+    // print("user Id: $userID");
 
     Map<String, dynamic>? userData = await getDataFirestore(userID);
-    print(userData);
+    // print(userData);
 
     if (userData != null) {
       nama.value = userData['name'] ?? '';
@@ -64,7 +63,7 @@ class EditProfileController extends GetxController {
 
       birthDate.value = _parseDate(userData['birthDate']);
     } else {
-      print("Data user tidak ditemukan di Firestore");
+      // print("Data user tidak ditemukan di Firestore");
     }
   }
 
@@ -73,7 +72,7 @@ class EditProfileController extends GetxController {
       try {
         return DateTime.parse(dateString);
       } catch (e) {
-        print("Error parsing date: $e");
+        // print("Error parsing date: $e");
       }
     }
     return null;
@@ -84,14 +83,14 @@ class EditProfileController extends GetxController {
       DocumentSnapshot<Map<String, dynamic>> document =
           await _firestore.collection('users').doc(userId).get();
       if (document.exists) {
-        print(document.data());
+        // print(document.data());
         return document.data()!;
       } else {
-        print("Data tidak ditemukan dari id: $userId");
+        // print("Data tidak ditemukan dari id: $userId");
         return null;
       }
     } catch (e) {
-      print("Error fetching data: $e");
+      // print("Error fetching data: $e");
       return null;
     }
   }
@@ -103,7 +102,7 @@ class EditProfileController extends GetxController {
       longitude.value = position.longitude;
     } catch (e) {
       Get.snackbar('Error', 'Gagal mendapatkan lokasi: $e');
-      print("error: $e");
+      // print("error: $e");
     }
   }
 
@@ -138,9 +137,9 @@ class EditProfileController extends GetxController {
         if (oldImageURL.isNotEmpty) {
           try {
             await ref.delete();
-            print("Gambar lama dihapus");
+            // print("Gambar lama dihapus");
           } catch (e) {
-            print("Gagal menghapus gambar lama: $e");
+            // print("Gagal menghapus gambar lama: $e");
           }
         }
 
@@ -174,7 +173,7 @@ class EditProfileController extends GetxController {
     } catch (e) {
       Get.snackbar('Error', 'Gagal memperbarui profil: $e',
           backgroundColor: Colors.red);
-      print("error: $e");
+      // print("error: $e");
     }
   }
 

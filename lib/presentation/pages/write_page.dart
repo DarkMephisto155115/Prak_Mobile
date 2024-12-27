@@ -10,7 +10,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:get/get.dart';
 
 class WriteStoryPage extends StatefulWidget {
-  const WriteStoryPage({Key? key}) : super(key: key);
+  const WriteStoryPage({super.key});
 
   @override
   _WriteStoryPageState createState() => _WriteStoryPageState();
@@ -31,14 +31,18 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
   bool _isRecording = false;
   bool _isAudioPlaying = false;
 
-  // Tambahkan variabel untuk kategori
+  // Tambahkan variabel untuk kategori genre
   final List<String> _categories = [
-    'Cerita Pendek',
-    'Novel',
-    'Puisi',
-    'Artikel'
+    'Komedi',
+    'Horor',
+    'Romansa',
+    'Thriller',
+    'Fantasi',
+    'Fiksi Ilmiah',
+    'Misteri',
+    'Aksi'
   ];
-  String _selectedCategory = 'Cerita Pendek';
+  String? _selectedCategory;
 
   @override
   void initState() {
@@ -70,42 +74,59 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
   }
 
   void _saveStory() {
-    if (_titleController.text.isNotEmpty && _storyController.text.isNotEmpty) {
-      _controller.uploadData(
-        title: _titleController.text,
-        content: _storyController.text.replaceAll('\n', '\\n'),
-        imageFile: _selectedImage,
-        audioFile: _recordedAudio,
-        category: _selectedCategory,
-      );
-    } else {
-      Get.snackbar(
-        "Error",
-        "Judul dan konten cerita tidak boleh kosong.",
-        backgroundColor: Colors.redAccent,
-        colorText: Colors.white,
-      );
-    }
+  if (_titleController.text.isEmpty) {
+    Get.snackbar(
+      "Error",
+      "Judul cerita tidak boleh kosong.",
+      backgroundColor: Colors.redAccent,
+      colorText: Colors.white,
+    );
+  } else if (_storyController.text.isEmpty) {
+    Get.snackbar(
+      "Error",
+      "Konten cerita tidak boleh kosong.",
+      backgroundColor: Colors.redAccent,
+      colorText: Colors.white,
+    );
+  } else if (_selectedCategory == null) {
+    Get.snackbar(
+      "Error",
+      "Silakan pilih kategori cerita.",
+      backgroundColor: Colors.redAccent,
+      colorText: Colors.white,
+    );
+  } else {
+    // Logika penyimpanan cerita
+    _controller.uploadData(
+      title: _titleController.text,
+      content: _storyController.text.replaceAll('\n', '\\n'),
+      imageFile: _selectedImage,
+      audioFile: _recordedAudio,
+      category: _selectedCategory!,
+    );
   }
+}
+
 
   Widget _statusConnectionWidget() {
-    return Obx(() => Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              _controller.isConnected.value ? Icons.wifi : Icons.wifi_off,
-              color: _controller.isConnected.value ? Colors.green : Colors.red,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              _controller.isConnected.value ? "Online" : "Offline",
-              style: TextStyle(
-                  color: _controller.isConnected.value
-                      ? Colors.green
-                      : Colors.red),
-            ),
-          ],
-        ));
+    return Obx(
+      () => Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            _controller.isConnected.value ? Icons.wifi : Icons.wifi_off,
+            color: _controller.isConnected.value ? Colors.green : Colors.red,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            _controller.isConnected.value ? "Online" : "Offline",
+            style: TextStyle(
+                color:
+                    _controller.isConnected.value ? Colors.green : Colors.red),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _pickMedia(String type, ImageSource source) async {
@@ -114,33 +135,43 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
     if (type == 'image') {
       file = await _picker.pickImage(source: source);
       if (file != null) {
-        setState(() {
-          _selectedImage = File(file!.path);
-          _selectedVideo = null;
-          _videoPlayerController?.dispose();
-        });
+        setState(
+          () {
+            _selectedImage = File(file!.path);
+            _selectedVideo = null;
+            _videoPlayerController?.dispose();
+          },
+        );
       }
     } else if (type == 'video') {
       file = await _picker.pickVideo(source: source);
       if (file != null) {
-        setState(() {
-          _selectedVideo = File(file!.path);
-          _selectedImage = null;
-          _videoPlayerController = VideoPlayerController.file(_selectedVideo!)
-            ..addListener(() {
-              if (_videoPlayerController!.value.position ==
-                  _videoPlayerController!.value.duration) {
-                setState(() {
-                  _videoPlayerController!.pause();
-                });
-              }
-            })
-            ..initialize().then((_) {
-              setState(() {});
-            }).catchError((e) {
-              print("Error initializing video player: $e");
-            });
-        });
+        setState(
+          () {
+            _selectedVideo = File(file!.path);
+            _selectedImage = null;
+            _videoPlayerController = VideoPlayerController.file(_selectedVideo!)
+              ..addListener(
+                () {
+                  if (_videoPlayerController!.value.position ==
+                      _videoPlayerController!.value.duration) {
+                    setState(() {
+                      _videoPlayerController!.pause();
+                    });
+                  }
+                },
+              )
+              ..initialize().then(
+                (_) {
+                  setState(() {});
+                },
+              ).catchError(
+                (e) {
+                  // print("Error initializing video player: $e");
+                },
+              );
+          },
+        );
       }
     }
   }
@@ -151,24 +182,32 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
       String filePath = '${tempDir.path}/audio_record.aac';
 
       await _audioRecorder.startRecorder(toFile: filePath);
-      setState(() {
-        _isRecording = true;
-      });
+      setState(
+        () {
+          _isRecording = true;
+        },
+      );
     } else {
       String? filePath = await _audioRecorder.stopRecorder();
-      setState(() {
-        _isRecording = false;
-        _recordedAudio = filePath != null ? File(filePath) : null;
-      });
+      setState(
+        () {
+          _isRecording = false;
+          _recordedAudio = filePath != null ? File(filePath) : null;
+        },
+      );
     }
   }
 
   void _initAudioPlayer() {
-    _audioPlayer.onPlayerComplete.listen((event) {
-      setState(() {
-        _isAudioPlaying = false;
-      });
-    });
+    _audioPlayer.onPlayerComplete.listen(
+      (event) {
+        setState(
+          () {
+            _isAudioPlaying = false;
+          },
+        );
+      },
+    );
   }
 
   Future<void> _toggleAudioPlayback() async {
@@ -179,9 +218,11 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
         await _audioPlayer.play(DeviceFileSource(_recordedAudio!.path));
       }
     }
-    setState(() {
-      _isAudioPlaying = !_isAudioPlaying;
-    });
+    setState(
+      () {
+        _isAudioPlaying = !_isAudioPlaying;
+      },
+    );
   }
 
   Widget _imageVideoPreview() {
@@ -203,9 +244,11 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
             child: IconButton(
               icon: const Icon(Icons.delete, color: Colors.red, size: 30),
               onPressed: () {
-                setState(() {
-                  _selectedImage = null;
-                });
+                setState(
+                  () {
+                    _selectedImage = null;
+                  },
+                );
               },
             ),
           ),
@@ -334,9 +377,7 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        leading: BackButton(
-            color: Colors.white
-        ),
+        leading: const BackButton(color: Colors.white),
         backgroundColor: Colors.deepPurple[700],
         title: const Text(
           'Tulis Ceritamu',
@@ -360,25 +401,42 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
               ),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
-                  value: _selectedCategory,
+                  value: _selectedCategory == "Pilih Genre"
+                      ? null
+                      : _selectedCategory,
                   icon: const Icon(Icons.arrow_drop_down,
                       color: Colors.deepPurpleAccent),
                   iconSize: 24,
                   elevation: 16,
                   style: const TextStyle(color: Colors.white),
                   dropdownColor: Colors.grey[900],
+                  hint: const Text("Pilih Genre",
+                      style: TextStyle(color: Colors.grey)),
                   onChanged: (String? newValue) {
-                    setState(() {
-                      _selectedCategory = newValue!;
-                    });
-                  },
-                  items:
-                      _categories.map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
+                    setState(
+                      () {
+                        _selectedCategory = newValue!;
+                      },
                     );
-                  }).toList(),
+                  },
+                  items: [
+                    const DropdownMenuItem<String>(
+                      value: "Pilih Genre",
+                      enabled: false, // Tidak dapat dipilih
+                      child: Text(
+                        "Pilih Genre",
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ),
+                    ..._categories.map<DropdownMenuItem<String>>(
+                      (String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        );
+                      },
+                    ).toList(),
+                  ],
                 ),
               ),
             ),
@@ -507,25 +565,27 @@ class _WriteStoryPageState extends State<WriteStoryPage> {
               ),
             ),
             const SizedBox(height: 20),
-            Obx(() {
-              if (_controller.isUploading.value) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              return ElevatedButton(
-                onPressed: _saveStory,
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  backgroundColor: Colors.deepPurple[600],
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
+            Obx(
+              () {
+                if (_controller.isUploading.value) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                return ElevatedButton(
+                  onPressed: _saveStory,
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    backgroundColor: Colors.deepPurple[600],
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 30, vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
                   ),
-                ),
-                child:
-                    const Text('Unggah Cerita', style: TextStyle(fontSize: 18)),
-              );
-            }),
+                  child: const Text('Unggah Cerita',
+                      style: TextStyle(fontSize: 18)),
+                );
+              },
+            ),
           ],
         ),
       ),
