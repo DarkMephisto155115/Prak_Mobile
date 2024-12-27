@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -6,6 +5,8 @@ import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../controllers/favorites_controller.dart';
 
 class FavoritesPage extends StatefulWidget {
+  const FavoritesPage({super.key});
+
   @override
   _FavoritesPageState createState() => _FavoritesPageState();
 }
@@ -49,7 +50,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
     final user = FirebaseAuth.instance.currentUser;
 
     if (user == null) {
-      return Center(
+      return const Center(
         child: Text(
           'Please log in to view your favorites.',
           style: TextStyle(color: Colors.white),
@@ -59,47 +60,52 @@ class _FavoritesPageState extends State<FavoritesPage> {
 
     return Scaffold(
       appBar: AppBar(
-        leading: BackButton(
-            color: Colors.white
-        ),
+        leading: const BackButton(color: Colors.white),
         title: const Text('Favorites', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.grey[900],
+        backgroundColor: Colors.deepPurple,
       ),
       backgroundColor: Colors.black,
-      body: Obx(() {
-        // Gunakan favoriteItems dari controller
-        final favoriteItems = controller.favoriteItems;
+      body: Obx(
+        () {
+          // Gunakan favoriteItems dari controller
+          final favoriteItems = controller.favoriteItems;
 
-        if (favoriteItems.isEmpty) {
-          return const Center(child: Text('No favorites added yet.', style: TextStyle(color: Colors.white)));
-        }
+          if (favoriteItems.isEmpty) {
+            return const Center(
+                child: Text('No favorites added yet.',
+                    style: TextStyle(color: Colors.white)));
+          }
 
-        return ListView.builder(
-          itemCount: favoriteItems.length,
-          itemBuilder: (context, index) {
-            final item = favoriteItems[index];
-            return Card(
-              color: Colors.grey[850],
-              child: ListTile(
-                title: Text(item['title'], style: const TextStyle(color: Colors.white)),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("Author: ${item['author']}", style: const TextStyle(color: Colors.grey)),
-                    Text(item['description'], style: const TextStyle(color: Colors.white70)),
-                  ],
+          return ListView.builder(
+            itemCount: favoriteItems.length,
+            itemBuilder: (context, index) {
+              final item = favoriteItems[index];
+              return Card(
+                color: Colors.grey[850],
+                child: ListTile(
+                  title: Text(item['title'],
+                      style: const TextStyle(color: Colors.white)),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("Author: ${item['author']}",
+                          style: const TextStyle(color: Colors.grey)),
+                      // Text(item['description'],
+                      //     style: const TextStyle(color: Colors.white70)),
+                    ],
+                  ),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.redAccent),
+                    onPressed: () {
+                      controller.deleteFavorite(item['id']);
+                    },
+                  ),
                 ),
-                trailing: IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.redAccent),
-                  onPressed: () {
-                    controller.deleteFavorite(item['id']);
-                  },
-                ),
-              ),
-            );
-          },
-        );
-      }),
+              );
+            },
+          );
+        },
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           final newFavorite = await _showAddDialog(context);
@@ -108,12 +114,10 @@ class _FavoritesPageState extends State<FavoritesPage> {
               newFavorite['id']!,
               newFavorite['title']!,
               newFavorite['author']!,
-              newFavorite['description']!,
-              // newFavorite['id'],
             );
           }
         },
-        backgroundColor: Colors.orange,
+        backgroundColor: Colors.deepPurple,
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );
@@ -127,7 +131,8 @@ class _FavoritesPageState extends State<FavoritesPage> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.grey[900],
-        title: const Text('Add Favorite', style: TextStyle(color: Colors.white)),
+        title:
+            const Text('Add Favorite', style: TextStyle(color: Colors.white)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -151,7 +156,9 @@ class _FavoritesPageState extends State<FavoritesPage> {
         actions: [
           TextButton(
             onPressed: () {
-              if (titleController.text.isEmpty || authorController.text.isEmpty || descriptionController.text.isEmpty) {
+              if (titleController.text.isEmpty ||
+                  authorController.text.isEmpty ||
+                  descriptionController.text.isEmpty) {
                 Get.snackbar("Error", "All fields must be filled out");
                 return;
               }

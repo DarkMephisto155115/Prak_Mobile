@@ -4,19 +4,15 @@ import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:terra_brain/presentation/controllers/story_controller.dart';
 
 class StoryPage extends GetView<StoryController> {
-  const StoryPage({Key? key}) : super(key: key);
+  const StoryPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     final arguments = Get.arguments as Map<String, dynamic>;
     final storyId = arguments['id'] as String;
     print('Story ID: $storyId'); // Cek nilai dan tipe data
-    if (storyId is String) {
-      controller.setStoryId(storyId); // Set storyId ke controller
-      // Ini jika argumen benar adalah String
-    } else {
-      print('Expected String, but got: ${storyId.runtimeType}');
-    }
+    controller.setStoryId(storyId); // Set storyId ke controller
+    // Ini jika argumen benar adalah String
 
     return Scaffold(
       body: Container(
@@ -37,13 +33,13 @@ class StoryPage extends GetView<StoryController> {
                 flexibleSpace: FlexibleSpaceBar(
                   title: Obx(() {
                     if (controller.title.isEmpty) {
-                      return Text('Loading...',
+                      return const Text('Loading...',
                           style: TextStyle(color: Colors.red));
                     }
                     print(controller.title.value);
                     return Text(
                       controller.title.value,
-                      style: TextStyle(color: Colors.white),
+                      style: const TextStyle(color: Colors.white),
                     );
                   }),
                   background: Obx(() {
@@ -114,7 +110,7 @@ class StoryPage extends GetView<StoryController> {
               radius: 24,
               backgroundImage: controller.writerImage.value.isNotEmpty
                   ? NetworkImage(controller.writerImage.value)
-                  : AssetImage('assets/images/default_profile.jpeg')
+                  : const AssetImage('assets/images/default_profile.jpeg')
             );
           }),
           const SizedBox(width: 16),
@@ -209,8 +205,8 @@ class StoryPage extends GetView<StoryController> {
       child: Column(
         children: [
           Icon(icon, color: Colors.white),
-          SizedBox(height: 4),
-          Text(label, style: TextStyle(color: Colors.white)),
+          const SizedBox(height: 4),
+          Text(label, style: const TextStyle(color: Colors.white)),
         ],
       ),
     );

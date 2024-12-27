@@ -11,10 +11,10 @@ class SettingPage extends GetView<SettingController> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        leading: BackButton(
+        leading: const BackButton(
             color: Colors.white
         ),
-        backgroundColor: const Color(0xFF171717),
+        backgroundColor: Colors.deepPurple,
         elevation: 0,
         title: const Text('Setting'),
         titleTextStyle: const TextStyle(color: Colors.white),
@@ -41,7 +41,6 @@ class SettingPage extends GetView<SettingController> {
             ),
             onTap: () {
               Get.toNamed(Routes.GPS);
-              print("Navigate to gps page");
             },
           ),
           Divider(color: Colors.grey[800]),
@@ -51,13 +50,11 @@ class SettingPage extends GetView<SettingController> {
               style: TextStyle(color: Colors.white),
             ),
             onTap: () {
-              // Get.toNamed(Routes.GPS);
               controller.openGoogleMaps(-7.925554, 112.596379);
-              print("Navigate office center");
             },
           ),
           Divider(color: Colors.grey[800]),
-          Spacer(),
+          const Spacer(),
           ListTile(
             leading: const Icon(Icons.logout, color: Colors.pinkAccent),
             title: const Text(

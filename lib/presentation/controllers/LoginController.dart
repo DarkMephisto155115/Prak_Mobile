@@ -1,3 +1,5 @@
+// ignore_for_file: file_names
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -26,7 +28,7 @@ class LoginController extends GetxController {
         final SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setBool('isLoggedIn', true);
         await prefs.setString('userId', userCredential.user!.uid);
-        print(userCredential.user!.uid);
+
 
         Get.snackbar('Success', 'Logged in successfully',
             backgroundColor: Colors.green, colorText: Colors.white);

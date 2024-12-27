@@ -4,23 +4,28 @@ import '../controllers/best_seller_list_controller.dart';
 
 
 class BestSellerListScreen extends GetView<BestSellerListController> {
+  const BestSellerListScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('WATTPAD Best Categories'),
+        title: const Text('Novelku Best Categories',style: TextStyle(color: Colors.white),),
+        backgroundColor: Colors.deepPurple,
+        leading: const BackButton(color: Colors.white),
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
-          return Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator());
         }
         return ListView.builder(
           itemCount: controller.bestSellerLists.length,
           itemBuilder: (context, index) {
             final category = controller.bestSellerLists[index];
             return ListTile(
-              title: Text(category.displayName),
-              subtitle: Text('Updated: ${category.updated}'),
+              tileColor: Colors.black,
+              title: Text(category.displayName, style: const TextStyle(color: Colors.white),),
+              subtitle: Text('Updated: ${category.updated}', style: const TextStyle(color: Colors.white)),
               onTap: () {
 
               },

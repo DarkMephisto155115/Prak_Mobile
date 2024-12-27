@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
-// import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:get/get.dart';
@@ -28,7 +27,6 @@ class WriteController extends GetxController {
     _checkInitialConnection();
     _initializeStorage();
     _monitorConnection();
-    _checkLocalPendingUploads();
     _getLocalData();
     _getWriterName();
   }
@@ -56,13 +54,13 @@ class WriteController extends GetxController {
         bool isConnectedNow = true;
         isConnected.value = isConnectedNow;
         _showConnectionSnackbar(isConnected.value);
-        // print("anda kembali online");
+        print("anda kembali online");
         _checkLocalPendingUploads();
       } else {
         bool isConnectedNow = false;
         isConnected.value = isConnectedNow;
         _showConnectionSnackbar(isConnected.value);
-        // print("anda ofline");
+        print("anda ofline");
       }
     });
   }
@@ -93,62 +91,85 @@ class WriteController extends GetxController {
     // print("Koneksi awal: $result");
     if (result.contains(ConnectivityResult.wifi) ||
         result.contains(ConnectivityResult.mobile)) {
+      // _storage.remove('pending_uploads');
+
       bool conection = true;
       isConnected.value = conection;
-      // print("isConnected awal: ${isConnected.value}");
-      _showConnectionSnackbar(isConnected.value);
+      print("isConnected awal: ${isConnected.value}");
+      // _showConnectionSnackbar(isConnected.value);
     } else {
       bool conection = false;
       isConnected.value = conection;
-      // print("isConnected awal: ${isConnected.value}");
-      _showConnectionSnackbar(isConnected.value);
+      print("isConnected awal: ${isConnected.value}");
+      // _showConnectionSnackbar(isConnected.value);
+      // _storage.remove('pending_uploads')
     }
   }
 
-  Future<void> _getWriterName () async {
-    try{
-      DocumentSnapshot userDoc = await _firestore.collection('users').doc(userId.value).get();
-      username.value = userDoc['username'];
-    } catch (e){}   
+  Future<void> _getWriterName() async {
+    if (userId.value.isEmpty) {
+      // print("Error: userId kosong");
+      return;
+    }
+
+    try {
+      DocumentSnapshot userDoc =
+          await _firestore.collection('users').doc(userId.value).get();
+      if (userDoc.exists && userDoc.data() != null) {
+        username.value = userDoc['username'] ?? 'Unknown Author';
+      } else {
+        // print("Error: User tidak ditemukan di Firestore");
+      }
+    } catch (e) {
+      // print('Error saat mengambil username dari Firestore: $e');
+    }
   }
 
   Future<String?> _uploadFileToStorage(File file, String path) async {
+    if (!file.existsSync()) {
+      print("File tidak ditemukan: ${file.path}");
+      return null;
+    }
+
     try {
-      // Cek koneksi
       if (isConnected.value) {
-        // Upload ke Firebase Storage
         final Reference storageRef = FirebaseStorage.instance.ref().child(path);
         final UploadTask uploadTask = storageRef.putFile(file);
         final TaskSnapshot snapshot = await uploadTask;
-        final String downloadUrl = await snapshot.ref.getDownloadURL();
-        return downloadUrl;
+        return await snapshot.ref.getDownloadURL();
       } else {
-        // Jika offline, simpan file secara lokal
         Directory dir = await getApplicationDocumentsDirectory();
         String localPath = "${dir.path}/${path.split('/').last}";
         await file.copy(localPath);
-
-        // Simpan informasi ke pending uploads
         _addToPendingUploads(localPath, path);
-
-        // Kembalikan null untuk menandakan file belum diunggah
-        return null;
+        // return null;
       }
     } catch (e) {
-      // Tangani error jika terjadi
+      print("Error saat mengunggah file: $e");
       rethrow;
     }
+    return null;
   }
 
   void _addToPendingUploads(String localPath, String firebasePath) {
-    List<Map<String, String>> pendingUploads =
-        (_storage.read('pending_files') as List<dynamic>? ?? [])
-            .map((item) => Map<String, String>.from(item))
-            .toList();
+    try {
+      // Ambil data existing, pastikan selalu dalam format List<String>
+      List<String> pendingUploads =
+          (_storage.read('pending_files') as List<dynamic>? ?? [])
+              .cast<String>();
 
-    // Tambahkan file ke daftar pending uploads
-    pendingUploads.add({"localPath": localPath, "firebasePath": firebasePath});
-    _storage.write('pending_files', pendingUploads);
+      // Tambahkan data baru, encoded sebagai String JSON
+      pendingUploads.add(jsonEncode({
+        "localPath": localPath,
+        "firebasePath": firebasePath,
+      }));
+
+      // Simpan kembali ke GetStorage
+      _storage.write('pending_files', pendingUploads);
+      print("Disimpan ke pending uploads: $pendingUploads");
+    } catch (e) {
+      print("Gagal menambahkan ke pending uploads: $e");
+    }
   }
 
   // Save Media Locally and Return File Path
@@ -165,7 +186,6 @@ class WriteController extends GetxController {
   }
 
   // Upload Data to Firebase Firestore
-  @override
   Future<void> uploadData({
     required String title,
     required String content,
@@ -175,6 +195,11 @@ class WriteController extends GetxController {
   }) async {
     try {
       isUploading.value = true;
+
+      // Pastikan username sudah diambil
+      if (username.value.isEmpty) {
+        await _getWriterName();
+      }
 
       // Paths for Firebase Storage
       String? imageUrl;
@@ -203,23 +228,27 @@ class WriteController extends GetxController {
         "audioUrl": audioUrl,
         "createdAt": createdAt,
       };
+      print("data (upload data): $data");
 
       if (isConnected.value) {
         await FirebaseFirestore.instance.collection('stories').add(data);
         Get.snackbar("Upload Successful", "Data uploaded to Firestore.",
-            backgroundColor: Get.theme.primaryColor,
-            colorText: Get.theme.colorScheme.onPrimary);
+            backgroundColor: Colors.green, colorText: Colors.white);
+        print("Berhasil updload ke firestore (upload data)");
+        // Navigator.pushReplacementNamed(context, '/home');
       } else {
         _saveDataLocally(data);
         Get.snackbar("No Internet", "Data saved locally for later upload.",
-            backgroundColor: Get.theme.disabledColor,
-            colorText: Get.theme.colorScheme.onError);
+            backgroundColor: Colors.red, colorText: Colors.white);
+        print("Data disimpan di local sementara (upload data)");
+        // Get.offNamed('/home');
       }
     } catch (e) {
       Get.snackbar("Error", "Failed to upload data: $e",
           backgroundColor: Get.theme.disabledColor,
           colorText: Get.theme.colorScheme.onError);
-      // print("error: $e");
+      print("gagal mengupluod data(upload data): $e ");
+      print("data (upload data): ");
     } finally {
       isUploading.value = false;
     }
@@ -227,45 +256,161 @@ class WriteController extends GetxController {
 
   // Save Data Locally
   void _saveDataLocally(Map<String, dynamic> data) {
+    if (data.isEmpty) {
+      print("Tidak ada data untuk disimpan.");
+      return;
+    }
+    // _storage.remove('pending_uploads');
+    // _storage.remove('pending_uploads');
+
     List<String> pendingUploads =
-        (_storage.read('pending_uploads') as List<dynamic>?)
-                ?.map((item) => item.toString())
-                .toList() ??
-            [];
+        (_storage.read('pending_uploads') as List<dynamic>? ?? [])
+            .map((item) => item.toString())
+            .toList();
+
     pendingUploads.add(jsonEncode(data));
-    // print("data yang disimpan di local: $data");
-    // print("data ditulis dib local sementara");
+    print("data yang di pending: $pendingUploads");
+    print("_savedatalocaly");
     _storage.write('pending_uploads', pendingUploads);
   }
 
   // Check and Upload Local Pending Data
   void _checkLocalPendingUploads() async {
     if (isConnected.value) {
-      List<Map<String, String>> pendingUploads =
+      List<String> filesPending =
           (_storage.read('pending_files') as List<dynamic>? ?? [])
-              .map((item) => Map<String, String>.from(item))
-              .toList();
+              .cast<String>();
+      List<String> dataPending =
+          (_storage.read('pending_uploads') as List<dynamic>? ?? [])
+              .cast<String>();
+      if (filesPending.isNotEmpty || dataPending.isNotEmpty) {
+        print("Starting upload process for pending files and data...");
 
-      if (pendingUploads.isNotEmpty) {
-        for (var fileData in pendingUploads) {
+        // Handle pending files
+        print("Pending files to process: $filesPending");
+
+        List<String> updatedFilesPending = [];
+        List<String> finalUPdateData = [];
+        String imageURL = "";
+
+        for (var item in filesPending) {
           try {
-            // Unggah file dari path lokal ke Firebase Storage
-            File localFile = File(fileData["localPath"]!);
-            String firebasePath = fileData["firebasePath"]!;
-            final String? downloadUrl =
-                await _uploadFileToStorage(localFile, firebasePath);
+            Map<String, dynamic> fileData = jsonDecode(item);
 
-            // Hapus file lokal jika berhasil diunggah
-            localFile.deleteSync();
+            if (fileData.containsKey("localPath") &&
+                fileData.containsKey("firebasePath")) {
+              String localPath = fileData["localPath"];
+              String firebasePath = fileData["firebasePath"];
+              File localFile = File(localPath);
+
+              if (localFile.existsSync()) {
+                String? downloadUrl =
+                    await _uploadFileToStorage(localFile, firebasePath);
+                if (downloadUrl != null) {
+                  print("File uploaded successfully: $downloadUrl");
+                  fileData["downloadUrl"] = downloadUrl;
+                  imageURL = downloadUrl;
+                  finalUPdateData.add(downloadUrl);
+                } else {
+                  print("Failed to upload file: $localPath");
+                  updatedFilesPending.add(item);
+                  print("update file pending: $updatedFilesPending");
+                  continue;
+                }
+              } else {
+                print("Local file not found: $localPath");
+                updatedFilesPending.add(item);
+                continue;
+              }
+            }
           } catch (e) {
-            // Jika gagal, lanjut ke file berikutnya
-            print("Gagal mengunggah file tertunda: $e");
+            print("Error processing pending file: $e");
+            updatedFilesPending.add(item);
           }
         }
 
-        // Hapus semua data dari pending uploads jika selesai
-        _storage.remove('pending_files');
+        // Update pending files in local storage
+        print("final update data file: $finalUPdateData");
+        print("data files pending before update: $updatedFilesPending");
+        if (updatedFilesPending.isNotEmpty) {
+          _storage.write('pending_files', updatedFilesPending);
+          print("Pending files updated: $updatedFilesPending");
+        } else {
+          _storage.remove('pending_files');
+          print("All pending files successfully processed and uploaded.");
+        }
+
+        // Handle pending data
+        print("imageurl after get url: $imageURL");
+
+        print("Pending data to process: $dataPending");
+
+        List<String> updatedDataPending = [];
+
+        for (var item in dataPending) {
+          try {
+            Map<String, dynamic> data = jsonDecode(item);
+            print("data pending: $data");
+
+            if (data.containsKey('imageUrl') && data['imageUrl'] == null) {
+              String imageUrl = imageURL;
+
+              data['imageUrl'] = imageUrl;
+              data.remove('localImagePath');
+              print("Image uploaded and URL updated: $imageUrl");
+                        }
+
+            if (data.containsKey('audioUrl') &&
+                data['audioUrl'] == null &&
+                data.containsKey('localAudioPath')) {
+              String localAudioPath = data['localAudioPath'];
+              File localAudioFile = File(localAudioPath);
+
+              if (localAudioFile.existsSync()) {
+                String audioPath =
+                    'audios/${DateTime.now().millisecondsSinceEpoch}.aac';
+                String? audioUrl =
+                    await _uploadFileToStorage(localAudioFile, audioPath);
+
+                if (audioUrl != null) {
+                  data['audioUrl'] = audioUrl;
+                  data.remove('localAudioPath');
+                  print("Audio uploaded and URL updated: $audioUrl");
+                } else {
+                  print("Failed to upload audio file: $localAudioPath");
+                  updatedDataPending.add(item);
+                  continue;
+                }
+              }
+            }
+
+            // Save updated data to Firestore
+            if (data.containsKey('title')) {
+              await FirebaseFirestore.instance.collection('stories').add(data);
+              print("Data successfully uploaded to Firestore: $data");
+            } else {
+              print("Incomplete data, skipping upload to Firestore: $data");
+              updatedDataPending.add(jsonEncode(data));
+            }
+          } catch (e) {
+            print("Error processing pending data: $e");
+            updatedDataPending.add(item);
+          }
+        }
+
+        // Update the pending data in local storage
+        if (updatedDataPending.isNotEmpty) {
+          _storage.write('pending_uploads', updatedDataPending);
+          print("Pending data updated: $updatedDataPending");
+        } else {
+          _storage.remove('pending_uploads');
+          print("All pending data successfully processed and uploaded.");
+          Get.snackbar("Succes", "Semua pending data telah di upload");
+        }
       }
+    } else {
+      print(
+          "No internet connection. Pending uploads will be processed when back online.");
     }
   }
 

@@ -38,6 +38,7 @@ class GpsController extends GetxController {
 
     isPermissionGranted.value = true;
     Position position = await Geolocator.getCurrentPosition(
+        // ignore: deprecated_member_use
         desiredAccuracy: LocationAccuracy.high);
     latitude.value = position.latitude;
     longitude.value = position.longitude;

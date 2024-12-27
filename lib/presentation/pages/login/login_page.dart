@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../routes/app_pages.dart';
-import '../controllers/LoginController.dart';
+import '../../routes/app_pages.dart';
+import '../../controllers/LoginController.dart';
 
 class LoginPage extends GetView<LoginController> {
   final LoginController controller = Get.put(LoginController());
@@ -32,7 +32,7 @@ class LoginPage extends GetView<LoginController> {
                     children: [
                       TweenAnimationBuilder(
                         tween: Tween<double>(begin: 0, end: 1),
-                        duration: Duration(milliseconds: 800),
+                        duration: const Duration(milliseconds: 800),
                         builder: (context, double value, child) {
                           return Opacity(
                             opacity: value,

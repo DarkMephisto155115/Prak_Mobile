@@ -19,6 +19,7 @@ class NotificationHandler {
     final fCMToken = await _firebaseMessaging.getToken();
     print("Token: $fCMToken");
 
+    _firebaseMessaging.subscribeToTopic('allUsers');
     // Handle notifications in Foreground
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       print('Message received in Foreground: ${message.notification?.title}');

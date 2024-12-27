@@ -2,7 +2,7 @@ import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../routes/app_pages.dart';
+import '../../routes/app_pages.dart';
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
@@ -12,7 +12,7 @@ class SplashScreen extends StatelessWidget {
     bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
 
     if (isLoggedIn) {
-      await Future.delayed(const Duration(seconds: 4));
+      // await Future.delayed(const Duration(seconds: 1));
       Get.offAllNamed(Routes.HOME);
     } else {
       await Future.delayed(const Duration(seconds: 4));

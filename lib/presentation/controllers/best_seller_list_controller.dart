@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'dart:convert';
 import '../model/list_category.dart';
@@ -22,10 +23,14 @@ class BestSellerListController extends GetxController {
       if (response.statusCode == 200) {
         bestSellerLists.value = parseCategories(response.bodyString!);
       } else {
-        print('Failed to fetch data: ${response.statusCode}');
+        if (kDebugMode) {
+          print('Failed to fetch data: ${response.statusCode}');
+        }
       }
     } catch (e) {
-      print('Error occurred: $e');
+      if (kDebugMode) {
+        print('Error occurred: $e');
+      }
     } finally {
       isLoading.value = false;
     }

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -70,7 +71,9 @@ class RegistrationController extends GetxController {
 
       return snapshot.docs.isNotEmpty; 
     } catch (e) {
-      print("Error checking username: $e");
+      if (kDebugMode) {
+        print("Error checking username: $e");
+      }
       return false;
     }
   }

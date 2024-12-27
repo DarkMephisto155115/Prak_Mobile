@@ -1,9 +1,15 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:intl/intl.dart';
 
 class EditStoryController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseStorage _storage = FirebaseStorage.instance;
 
   final dateFormat = DateFormat('dd-MM-yyyy');
 
@@ -27,38 +33,26 @@ class EditStoryController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    // Menggunakan ever untuk memantau perubahan pada storyId
-
     ever(storyId, (String id) {
-      print("Story ID has changed to: $id"); // Log perubahan storyId
+      if (kDebugMode) {
+        print("Story ID has changed to: $id");
+      }
       if (id.isNotEmpty) {
         fetchStory();
-      } else {
-        print("Story ID is empty, fetch not triggered.");
       }
     });
   }
 
-  // Mengubah ID cerita yang akan diambil
   void setStoryId(String id) {
-    print("Setting storyId to: $id"); // Log ketika ID cerita diubah
     storyId.value = id;
-    print("storyId.value set to: ${storyId.value}");
   }
 
-  // Mengambil data cerita dari Firestore
-  void fetchStory() async {
+  Future<void> fetchStory() async {
     try {
-      if (storyId.value.isEmpty) {
-        print("Data tidak ditemukan karena storyId kosong");
-        return; // Menghindari query Firestore jika ID kosong
-      }
-
-      print("Fetching story with ID: ${storyId.value}");
+      if (storyId.value.isEmpty) return;
 
       DocumentSnapshot<Map<String, dynamic>> document =
       await _firestore.collection('stories').doc(storyId.value).get();
-      print("Fetched story document: ${document.data()}");
 
       if (document.exists) {
         var storyData = document.data()!;
@@ -72,32 +66,22 @@ class EditStoryController extends GetxController {
         category.value = storyData['category'] ?? '';
         favorite.value = storyData['favorite'] ?? 0;
 
-        print("Story data loaded: $storyData");
-
-        // Mengambil writerId dari data cerita dan mengambil informasi penulis
         writerId.value = storyData['writerId'];
-        fetchWriter(); // Fetch data penulis
-      } else {
-        print("Data tidak ditemukan untuk storyId: ${storyId.value}");
+        fetchWriter();
       }
     } catch (e) {
-      print('Error fetching story: $e');
+      if (kDebugMode) {
+        print('Error fetching story: $e');
+      }
     }
   }
 
-  // Mengambil data profil penulis dari Firestore
-  void fetchWriter() async {
+  Future<void> fetchWriter() async {
     try {
-      if (writerId.value.isEmpty) {
-        print("Writer ID is empty, fetch skipped.");
-        return;
-      }
-
-      print("Fetching writer with ID: ${writerId.value}");
+      if (writerId.value.isEmpty) return;
 
       DocumentSnapshot<Map<String, dynamic>> writerDocument =
       await _firestore.collection('users').doc(writerId.value).get();
-      print("Fetched writer document: ${writerDocument.data()}");
 
       if (writerDocument.exists) {
         var writerData = writerDocument.data()!;
@@ -105,52 +89,77 @@ class EditStoryController extends GetxController {
         writerUsername.value = writerData['username'] ?? '';
         writerImage.value = writerData['imagesURL'] ?? '';
         writerFollower.value = writerData['follower'] ?? 0;
-
-        print("Writer data loaded: $writerData");
-      } else {
-        print("Writer data not found for writerId: ${writerId.value}");
       }
     } catch (e) {
-      print('Error fetching writer: $e');
+      if (kDebugMode) {
+        print('Error fetching writer: $e');
+      }
     }
   }
 
-  // Fungsi untuk mengedit cerita
+  Future<void> pickImage() async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+      if (pickedFile != null) {
+        String imageUrl = await uploadImageToStorage(pickedFile);
+        imagePath.value = imageUrl;
+        if (kDebugMode) {
+          print("Image uploaded successfully: $imageUrl");
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error picking image: $e');
+      }
+    }
+  }
+
+  Future<String> uploadImageToStorage(XFile image) async {
+    try {
+      String fileName = 'stories/${storyId.value}/${DateTime.now().millisecondsSinceEpoch}.jpg';
+      Reference ref = _storage.ref().child(fileName);
+
+      TaskSnapshot uploadTask = await ref.putFile(File(image.path));
+      return await uploadTask.ref.getDownloadURL();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error uploading image: $e');
+      }
+      return '';
+    }
+  }
+
   Future<void> editStory({
     required String newTitle,
     required String newContent,
-    String? newImageUrl, // Opsional, jika ada gambar baru
+    String? newImageUrl,
   }) async {
     try {
-      if (storyId.value.isEmpty) {
-        print("Story ID is empty, cannot update the story.");
-        return;
-      }
-
-      print("Updating story with ID: ${storyId.value}");
+      if (storyId.value.isEmpty) return;
 
       Map<String, dynamic> updatedData = {
         'title': newTitle,
         'content': newContent,
-        'updatedAt': DateTime.now().toIso8601String(), // Menambahkan waktu update
+        'updatedAt': DateTime.now().toIso8601String(),
       };
 
       if (newImageUrl != null && newImageUrl.isNotEmpty) {
-        updatedData['imageUrl'] = newImageUrl; // Menambahkan URL gambar jika ada
+        updatedData['imageUrl'] = newImageUrl;
       }
 
       await _firestore.collection('stories').doc(storyId.value).update(updatedData);
 
-      // Memperbarui data di controller setelah sukses
       title.value = newTitle;
       content.value = newContent;
       if (newImageUrl != null && newImageUrl.isNotEmpty) {
         imagePath.value = newImageUrl;
       }
-
-      print("Story updated successfully with data: $updatedData");
     } catch (e) {
-      print('Error updating story: $e');
+      if (kDebugMode) {
+        print('Error updating story: $e');
+      }
     }
   }
 }

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
@@ -31,35 +32,49 @@ class StoryController extends GetxController {
 
     // fetchStory();
     ever(storyId, (String id) {
-      print("Story ID has changed to: $id"); // Log perubahan storyId
+      if (kDebugMode) {
+        print("Story ID has changed to: $id");
+      } // Log perubahan storyId
       if (id.isNotEmpty) {
         fetchStory();
       } else {
-        print("Story ID is empty, fetch not triggered.");
+        if (kDebugMode) {
+          print("Story ID is empty, fetch not triggered.");
+        }
       }
     });
   }
 
   // Mengubah ID cerita yang akan diambil
   void setStoryId(String id) {
-    print("Setting storyId to: $id"); // Log ketika ID cerita diubah
+    if (kDebugMode) {
+      print("Setting storyId to: $id");
+    } // Log ketika ID cerita diubah
     storyId.value = id;
-    print("storyId.value set to: ${storyId.value}");
+    if (kDebugMode) {
+      print("storyId.value set to: ${storyId.value}");
+    }
   }
 
   // Mengambil data cerita dari Firestore
   void fetchStory() async {
     try {
       if (storyId.value.isEmpty) {
-        print("Data tidak ditemukan karena storyId kosong");
+        if (kDebugMode) {
+          print("Data tidak ditemukan karena storyId kosong");
+        }
         return; // Menghindari query Firestore jika ID kosong
       }
 
-      print("Fetching story with ID: ${storyId.value}");
+      if (kDebugMode) {
+        print("Fetching story with ID: ${storyId.value}");
+      }
 
       DocumentSnapshot<Map<String, dynamic>> document =
           await _firestore.collection('stories').doc(storyId.value).get();
-      print("Fetched story document: ${document.data()}");
+      if (kDebugMode) {
+        print("Fetched story document: ${document.data()}");
+      }
 
       if (document.exists) {
         var storyData = document.data()!;
@@ -73,7 +88,9 @@ class StoryController extends GetxController {
         category.value = storyData['category'] ?? '';
         favorite.value = storyData['favorite'] ?? 0;
 
-        print("Story data loaded: $storyData");
+        if (kDebugMode) {
+          print("Story data loaded: $storyData");
+        }
 
         // Mengambil writerId dari data cerita dan mengambil informasi penulis
         writerId.value = storyData['writerId'];
@@ -82,7 +99,9 @@ class StoryController extends GetxController {
         print("Data tidak ditemukan untuk storyId: ${storyId.value}");
       }
     } catch (e) {
-      print('Error fetching story: $e');
+      if (kDebugMode) {
+        print('Error fetching story: $e');
+      }
     }
   }
 

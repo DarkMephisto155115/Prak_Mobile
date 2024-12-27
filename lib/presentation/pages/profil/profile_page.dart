@@ -1,15 +1,18 @@
+import 'dart:io';
+
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:terra_brain/presentation/routes/app_pages.dart';
-import '../controllers/profile_controller.dart';
+import '../../controllers/profile_controller.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ProfileScreen extends GetView<ProfileController> {
-  const ProfileScreen({Key? key}) : super(key: key);
+  const ProfileScreen({super.key});
 
   Future<void> _showCurrentLocation() async {
     try {
@@ -26,6 +29,7 @@ class ProfileScreen extends GetView<ProfileController> {
       }
 
       Position position = await Geolocator.getCurrentPosition(
+        // ignore: deprecated_member_use
         desiredAccuracy: LocationAccuracy.high,
       );
 
@@ -70,14 +74,14 @@ class ProfileScreen extends GetView<ProfileController> {
             child: CustomScrollView(
               slivers: [
                 SliverAppBar(
-                  leading: BackButton(
+                  leading: const BackButton(
                       color: Colors.white
                   ),
                   expandedHeight: 120.0,
                   floating: false,
                   pinned: true,
                   flexibleSpace: FlexibleSpaceBar(
-                    title: Text('Profil', style: TextStyle(color: Colors.white)),
+                    title: const Text('Profil', style: TextStyle(color: Colors.white)),
                     background: Container(
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
@@ -90,7 +94,7 @@ class ProfileScreen extends GetView<ProfileController> {
                   ),
                   actions: [
                     IconButton(
-                      icon: Icon(Icons.settings, color: Colors.white),
+                      icon: const Icon(Icons.settings, color: Colors.white),
                       onPressed: () => Get.toNamed(Routes.SETTING),
                     ),
                   ],
@@ -109,11 +113,11 @@ class ProfileScreen extends GetView<ProfileController> {
                         ),
                         children: [
                           _buildProfileHeader(),
-                          SizedBox(height: 24),
+                          const SizedBox(height: 24),
                           _buildStatistics(),
-                          SizedBox(height: 24),
+                          const SizedBox(height: 24),
                           _buildLocationButton(),
-                          SizedBox(height: 24),
+                          const SizedBox(height: 24),
                           _buildPublishedStories(),
                         ],
                       ),
@@ -139,21 +143,26 @@ class ProfileScreen extends GetView<ProfileController> {
                 color: Colors.deepPurple.withOpacity(0.5),
                 spreadRadius: 5,
                 blurRadius: 7,
-                offset: Offset(0, 3),
+                offset: const Offset(0, 3),
               ),
             ],
           ),
           child: CircleAvatar(
             radius: 60,
-            backgroundImage: controller.imagesURL.value.isNotEmpty
+            backgroundImage: controller.imagesURL.isNotEmpty
                 ? NetworkImage(controller.imagesURL.value)
-                : AssetImage('assets/images/default_profile.jpeg') as ImageProvider,
+                : controller.imagesURL.isEmpty &&
+                controller.imagesURL.value.isNotEmpty
+                ? FileImage(File(controller.imagesURL.value))
+            as ImageProvider
+                : const AssetImage(
+                'assets/images/default_avatar.png'),
           ),
         )),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
         Obx(() => Text(
           controller.name.value,
-          style: TextStyle(
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 24,
             fontWeight: FontWeight.bold,
@@ -185,9 +194,9 @@ class ProfileScreen extends GetView<ProfileController> {
       children: [
         Text(
           value,
-          style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+          style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
         ),
-        SizedBox(height: 4),
+        const SizedBox(height: 4),
         Text(
           label,
           style: TextStyle(color: Colors.grey[300], fontSize: 14),
@@ -206,7 +215,7 @@ class ProfileScreen extends GetView<ProfileController> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(30),
         ),
-        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       ),
     );
   }
@@ -215,44 +224,49 @@ class ProfileScreen extends GetView<ProfileController> {
     return Obx(() => Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        const Text(
           'Cerita yang Dipublikasikan',
           style: TextStyle(
               color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
         ),
-        SizedBox(height: 12),
-        FutureBuilder<List<QueryDocumentSnapshot>>(
-          future: _fetchStories(), // Call the asynchronous method to fetch stories
+        const SizedBox(height: 12),
+        StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('stories')
+              .where('writerId', isEqualTo: controller.userID.value)
+              .snapshots(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(
+              return const Center(
                 child: CircularProgressIndicator(color: Colors.deepPurple),
               );
             }
 
             if (snapshot.hasError) {
-              return Text(
+              return const Text(
                 'Terjadi kesalahan saat memuat cerita.',
                 style: TextStyle(color: Colors.red, fontSize: 16),
               );
             }
 
-            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
               return Text(
                 'Tidak ada cerita yang dipublikasikan.',
                 style: TextStyle(color: Colors.grey[400], fontSize: 14),
               );
             }
 
-            final stories = snapshot.data!;
+            final stories = snapshot.data!.docs;
 
+            // Update the stories count in the controller
             WidgetsBinding.instance.addPostFrameCallback((_) {
               controller.length.value = stories.length;
             });
 
             return ListView.builder(
               shrinkWrap: true, // Allow ListView to adjust its height
-              physics: NeverScrollableScrollPhysics(), // Disable scrolling within the list
+              physics:
+              const NeverScrollableScrollPhysics(), // Disable scrolling within the list
               itemCount: stories.length,
               itemBuilder: (context, index) {
                 final story = stories[index];
@@ -292,7 +306,7 @@ class ProfileScreen extends GetView<ProfileController> {
                         : Icon(Icons.book, color: Colors.deepPurple[300]),
                     title: Text(
                       title,
-                      style: TextStyle(color: Colors.white),
+                      style: const TextStyle(color: Colors.white),
                     ),
                     subtitle: Text(
                       'Dibuat: $formattedDate',
@@ -312,7 +326,8 @@ class ProfileScreen extends GetView<ProfileController> {
                     ),
                     onTap: () {
                       // Handle navigation to story detail
-                      Get.toNamed(Routes.PROFILE_READ, arguments: {'id': storyId});
+                      Get.toNamed(Routes.PROFILE_READ,
+                          arguments: {'id': storyId});
                     },
                   ),
                 );
@@ -324,19 +339,20 @@ class ProfileScreen extends GetView<ProfileController> {
     ));
   }
 
+
   Future<void> _confirmDelete(BuildContext context, String storyId) async {
     bool confirm = await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Hapus Cerita'),
-        content: Text('Apakah Anda yakin ingin menghapus cerita ini?'),
+        title: const Text('Hapus Cerita'),
+        content: const Text('Apakah Anda yakin ingin menghapus cerita ini?'),
         actions: [
           TextButton(
-            child: Text('Batal'),
+            child: const Text('Batal'),
             onPressed: () => Navigator.of(context).pop(false),
           ),
           TextButton(
-            child: Text('Hapus'),
+            child: const Text('Hapus'),
             onPressed: () => Navigator.of(context).pop(true),
           ),
         ],
@@ -350,18 +366,57 @@ class ProfileScreen extends GetView<ProfileController> {
 
   Future<void> _deleteStory(String storyId) async {
     try {
-      // Delete the story document from Firestore
-      await FirebaseFirestore.instance
+      // Reference to the Firestore document
+      DocumentSnapshot storyDoc = await FirebaseFirestore.instance
           .collection('stories')
           .doc(storyId)
-          .delete();
+          .get();
 
-      // Optionally, show a success message
-      print('Story deleted successfully');
+      if (storyDoc.exists) {
+        // Extract the image URL from the document
+        String? imageUrl = storyDoc['imageUrl'] ?? '';
+
+        // If there's an image URL, delete the image from Firebase Storage
+        if (imageUrl!.isNotEmpty) {
+          try {
+            final storageRef = FirebaseStorage.instance.refFromURL(imageUrl);
+            await storageRef.delete();
+            print('Image deleted successfully');
+          } catch (e) {
+            print('Error deleting image: $e');
+          }
+        }
+
+        // Delete the Firestore document
+        await FirebaseFirestore.instance.collection('stories').doc(storyId).delete();
+        print('Story deleted successfully');
+
+        // Refresh the stories list
+        final updatedStories = await _fetchStories();
+        controller.length.value = updatedStories.length; // Update the count
+        Get.snackbar(
+          'Success',
+          'Cerita berhasil dihapus.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+      } else {
+        print('Story does not exist');
+      }
     } catch (e) {
       print('Error deleting story: $e');
+      Get.snackbar(
+        'Error',
+        'Gagal menghapus cerita.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
     }
   }
+
+
 
 
 

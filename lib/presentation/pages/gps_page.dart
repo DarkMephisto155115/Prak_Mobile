@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'package:terra_brain/presentation/controllers/gps_controller.dart';
 
 class GpsPage extends GetView<GpsController> {
-  const GpsPage({Key? key}) : super(key: key);
+  const GpsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -121,11 +121,11 @@ class LocationInfoRow extends StatelessWidget {
   final String value;
 
   const LocationInfoRow({
-    Key? key,
+    super.key,
     required this.icon,
     required this.label,
     required this.value,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
